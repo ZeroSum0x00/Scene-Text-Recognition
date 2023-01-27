@@ -57,28 +57,6 @@ class AccuracyEvaluate(tf.keras.callbacks.Callback):
                         list_results.append(result)
             accuracy = n_correct / float(n_dataset) * 100
             
-            print(f'\nCurrent accucary: {accuracy}%')
-            if self.save_best:
-                if accuracy > self.current_accuracy:
-                    logger.info(f'Accuracy score increase {self.current_accuracy:.2f}% to {accuracy:.2f}%')
-                    logger.info(f'Save best Accuracy weights to {self.result_path}best_accuracy')                    
-                    self.model.save_weights(self.result_path + 'best_accuracy')
-                    self.current_accuracy = accuracy
-            self.accuracys.append(accuracy)
-            self.epoches.append(temp_epoch)
-
-            plt.figure()
-            plt.plot(self.epoches, self.accuracys, 'red', linewidth = 2, label='train map')
-
-            plt.grid(True)
-            plt.xlabel('Epoch')
-            plt.ylabel('Accuracy')
-            plt.title('A Accuracy Curve')
-            plt.legend(loc="lower right")
-            plt.savefig(os.path.join(self.result_path, "epoch_accuracy.png"))
-            plt.cla()
-            plt.close("all")
-
             if self.verbose:
                 list_results.sort(reverse=True, key=self._sort_criteria)
                 list_results = list_results[:10]
@@ -97,3 +75,31 @@ class AccuracyEvaluate(tf.keras.callbacks.Callback):
                     predicted_result_log += f'{gt:25s} | {pr:25s} | {conf:<10.4f} | {t}\n'
                 predicted_result_log += f'{dashed_line}'
                 print(predicted_result_log)
+                
+            print(f'\nCurrent accucary: {accuracy}%')
+            if self.save_best:
+                if accuracy > self.current_accuracy:
+                    logger.info(f'Accuracy score increase {self.current_accuracy:.2f}% to {accuracy:.2f}%')
+                    logger.info(f'Save best Accuracy weights to {self.result_path}best_accuracy')                    
+                    self.model.save_weights(self.result_path + 'best_accuracy')
+                    self.current_accuracy = accuracy
+            self.accuracys.append(accuracy)
+            self.epoches.append(temp_epoch)
+            
+            with open(os.path.join(self.result_path, "epoch_accuracy.txt"), 'a') as f:
+                if epoch == 0:
+                    f.write(f"Accuracy score in epoch 0: 0.0")
+                f.write(f"Accuracy score in epoch {epoch + 1}: {str(accuracy*100)}")
+                f.write("\n")
+            
+            plt.figure()
+            plt.plot(self.epoches, self.accuracys, 'red', linewidth = 2, label='train map')
+
+            plt.grid(True)
+            plt.xlabel('Epoch')
+            plt.ylabel('Accuracy')
+            plt.title('A Accuracy Curve')
+            plt.legend(loc="lower right")
+            plt.savefig(os.path.join(self.result_path, "epoch_accuracy.png"))
+            plt.cla()
+            plt.close("all")
