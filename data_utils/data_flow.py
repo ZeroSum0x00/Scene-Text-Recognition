@@ -102,7 +102,7 @@ class Train_Data_Sequence(Sequence):
             i           = i % self.N
             sample = self.dataset[i]
             img_path = self.data_path + sample['filename']
-            image = cv2.imread(img_path)
+            image = cv2.imread(img_path, 1) if self.target_size[-1] == 3 else cv2.imread(img_path, 0)
             image = self.normalizer(image,
                                     target_size=self.target_size[1:],
                                     interpolation=cv2.INTER_NEAREST)
@@ -151,17 +151,16 @@ class Valid_Data_Sequence(Sequence):
             i           = i % self.N
             sample = self.dataset[i]
             img_path = self.data_path + sample['filename']
-            images = cv2.imread(img_path)
-            orin_img = images
-            images = self.normalizer(images,
-                                target_size=self.target_size[1:],
-                                interpolation=cv2.INTER_NEAREST)
+            image = cv2.imread(img_path, 1) if self.target_size[-1] == 3 else cv2.imread(img_path, 0)
+            image = self.normalizer(image,
+                                    target_size=self.target_size[1:],
+                                    interpolation=cv2.INTER_NEAREST)
             
             label = sample['label']
             out_of_char = f'[^{self.character}]'
             label = re.sub(out_of_char, '', label.lower())
 
-            batch_image.append(images)
+            batch_image.append(image)
             batch_label.append(label)
 
         batch_image = np.array(batch_image)
