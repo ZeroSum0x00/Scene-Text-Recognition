@@ -85,6 +85,8 @@ class Normalizer():
             resized_w = math.ceil(target_size[0] * ratio)
 
         image = cv2.resize(image, (resized_w, target_size[0]), interpolation=interpolation)
+        if len(image.shape) == 2:
+            image = np.expand_dims(image, axis=-1)
         new_h, new_w = target_size[0], resized_w
         pad_image = np.zeros(target_size)
         pad_image[:, :new_w, :] = image
