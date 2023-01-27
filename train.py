@@ -53,7 +53,7 @@ def train(data_path                   = cfg.DATA_PATH,
                                                                load_memory       = load_memory)
 
         converter = CTCLabelConverter(character)
-        num_class = len(converter.character)
+        num_class = converter.N
 
         architecture = VGG_BiLSTM(str_filters, str_hidden_dim, str_output_dim, num_class)
         model = STR(architecture)
