@@ -74,9 +74,9 @@ class Normalizer():
 
     @classmethod
     def __resize_with_pad(cls, image, target_size, interpolation=None):
-        try:
+        if len(image.shape) == 3:
             h, w, _ = image.shape
-        except:
+        else:
             h, w = image.shape
         ratio = w / float(h)
         if math.ceil(target_size[0] * ratio) > target_size[1]:               
@@ -85,7 +85,7 @@ class Normalizer():
             resized_w = math.ceil(target_size[0] * ratio)
 
         image = cv2.resize(image, (resized_w, target_size[0]), interpolation=interpolation)
-        new_h, new_w, _ = image.shape
+        new_h, new_w = target_size[0], resized_w
         pad_image = np.zeros(target_size)
         pad_image[:, :new_w, :] = image
 
