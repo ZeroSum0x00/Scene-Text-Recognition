@@ -15,7 +15,8 @@ class CTCLabelConverter(object):
             self.dict[char] = i
 
         self.character = dict_character + ['[CTCblank]']  # dummy '[CTCblank]' token for CTCLoss
-
+        self.N = len(self.character)
+        
     def encode(self, text, max_string_length=25):
         """convert text-label into text-index.
         input:
