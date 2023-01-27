@@ -1,14 +1,10 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.callbacks import CSVLogger
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
-from models.vgg_bilstm import VGG_BiLSTM
-from models.scene_text_recognition import STR
-from models.layers.label_converter import CTCLabelConverter
-from losses.ctcloss import CTCLoss
-from callbacks.evaluate_accuracy import AccuracyEvaluate
-from callbacks.loss_history import LossHistory
+from models import STR, VGG_BiLSTM, CTCLabelConverter
+from losses import CTCLoss
+from callbacks import AccuracyEvaluate, LossHistory
 from data_utils.data_flow import get_train_test_data
 from utils.train_processing import create_folder_weights, train_prepare
 from configs import general_config as cfg
