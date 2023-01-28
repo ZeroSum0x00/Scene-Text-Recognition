@@ -89,7 +89,7 @@ class AccuracyEvaluate(tf.keras.callbacks.Callback):
             with open(os.path.join(self.result_path, "epoch_accuracy.txt"), 'a') as f:
                 if epoch == 0:
                     f.write(f"Accuracy score in epoch 0: 0.0")
-                f.write(f"Accuracy score in epoch {epoch + 1}: {str(accuracy*100)}")
+                f.write(f"Accuracy score in epoch {epoch + 1}: {str(accuracy)}")
                 f.write("\n")
             
             plt.figure()
