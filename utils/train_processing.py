@@ -6,6 +6,15 @@ from utils.logger import logger
 from utils.files import verify_folder
 
 
+def losses_prepare(loss_object):
+    ctc_loss  = None
+    for object in loss_object:
+        if object['loss'].invariant_name == "CTCLoss":
+            ctc_loss = object['loss']
+            ctc_loss.coefficient = object['coeff']
+    return ctc_loss
+
+
 def train_prepare(train_mode):
     try:
         logger.info(f"Setting trainer width {train_mode.lower()} mode")
