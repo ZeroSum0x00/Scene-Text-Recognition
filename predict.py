@@ -3,13 +3,9 @@ import math
 import numpy as np
 import tensorflow as tf
 
-from models.vgg_bilstm import VGG_BiLSTM
-from models.scene_text_recognition import STR
-from models.layers.label_converter import CTCLabelConverter
-
+from models import STR, VGG_BiLSTM, CTCLabelConverter
+from visualizer import visual_image, tensor_value_info
 from utils.files import get_files
-from visualizer.visual_image import visual_image
-from visualizer.visual_value import tensor_value_info
 
 
 def resize_with_pad(image, target_size, interpolation=cv2.INTER_NEAREST):
