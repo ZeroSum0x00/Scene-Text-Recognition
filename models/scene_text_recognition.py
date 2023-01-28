@@ -17,7 +17,7 @@ class STR(tf.keras.Model):
     def compile(self, optimizer, loss, metrics=None, **kwargs):
         super(STR, self).compile()
         self.optimizer = optimizer
-        self.str_loss = loss
+        self.loss_object = loss
         self.list_metrics = metrics
 
     @property
@@ -35,8 +35,10 @@ class STR(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             y_pred = self.architecture(images, training=True)
-            loss_value = self.str_loss(labels, y_pred, lenghts)
-
+            loss_value   = self.architecture.calc_loss(y_true=labels, 
+                                                       y_pred=y_pred, 
+                                                       lenghts=lenghts, 
+                                                       loss_object=self.loss_object)
         gradients = tape.gradient(loss_value, self.architecture.trainable_variables)
         # Same torch.nn.utils.clip_grad_norm_
         # https://stackoverflow.com/questions/36498127/how-to-apply-gradient-clipping-in-tensorflow
@@ -54,7 +56,10 @@ class STR(tf.keras.Model):
     def test_step(self, data):
         images, labels, lenghts = data
         y_pred = self.architecture(images, training=False)
-        loss_value = self.str_loss(labels, y_pred, lenghts)
+        loss_value   = self.architecture.calc_loss(y_true=labels, 
+                                                   y_pred=y_pred, 
+                                                   lenghts=lenghts, 
+                                                   loss_object=self.loss_object)
         self.total_loss_tracker.update_state(loss_value)
         if self.list_metrics:
             for metric in self.list_metrics:
@@ -90,8 +95,8 @@ class STR(tf.keras.Model):
             weight_path = weight['path']
             custom_objects = weight['custom_objects']
             if weight_path:
-                # self.architecture.build(input_shape=self.image_size)
-                # self.architecture.built = True
+                self.architecture.build(input_shape=self.image_size)
+                self.architecture.built = True
                 self.architecture.load_weights(weight_path)
                 logger.info("Load STR weights from {}".format(weight_path))
 
