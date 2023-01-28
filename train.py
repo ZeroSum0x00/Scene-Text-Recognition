@@ -69,8 +69,11 @@ def train(data_path                   = cfg.DATA_PATH,
         
         optimizer = Adam(learning_rate=lr_schedule)
         
-        losses = CTCLoss()
-
+        losses = [
+            {'loss': CTCLoss(), 'coeff': 1},
+            # {'loss': WeightedBCE(), 'coeff': 1},
+        ]
+        
         eval_callback = AccuracyEvaluate(valid_generator, 
                                          converter      = converter, 
                                          result_path    = TRAINING_TIME_PATH,
