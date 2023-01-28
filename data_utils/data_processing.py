@@ -4,9 +4,7 @@ import math
 import numpy as np
 from glob import glob
 from utils.files import extract_zip, verify_folder
-# from data_utils.augmentation import Available_Augmentation
-from data_utils.parse_txt import ParseTXT
-from data_utils.parse_json import ParseJSON
+from data_utils import ParseTXT, ParseJSON
  
 
 def extract_data_folder(data_dir, dst_dir=None):
@@ -135,26 +133,3 @@ class Normalizer():
             return self._sub_divide(input, *args, **kargs)
         else:
             return self._basic(input, *args, **kargs)
-
-
-# class Augmentor():
-#     def __init__(self, aug_mode="mixing_ver2"):
-#         self.augmentor = self._load_augmentation(aug_mode)
-      
-#     def _load_augmentation(self, aug_mode):
-#         augmentation = Available_Augmentation()
-#         augmentation_functions = {
-#             "geometric": augmentation.aug_geometric,
-#             "non_geometric": augmentation.aug_non_geometric,
-#             "mixing_ver1": augmentation.mixing_ver1,
-#             "mixing_ver2": augmentation.mixing_ver2,
-#         }
-#         if aug_mode not in augmentation_functions:
-#             raise ValueError("Augmentation name not supported")
-
-#         return augmentation_functions[aug_mode]()
-
-#     def __call__(self, input):
-#         img_aug = self.augmentor.to_deterministic()
-#         img_aug = self.augmentor.augment_image(input)
-#         return img_aug
