@@ -74,10 +74,17 @@ def train(data_path                   = cfg.DATA_PATH,
             # {'loss': WeightedBCE(), 'coeff': 1},
         ]
         
-        eval_callback = AccuracyEvaluate(valid_generator, 
+        train_eval_callback = AccuracyEvaluate(train_generator, 
                                          converter      = converter, 
                                          result_path    = TRAINING_TIME_PATH,
-                                         show_frequency = show_frequency)
+                                         show_frequency = show_frequency,
+                                         prefix         = "train")
+
+        valid_eval_callback = AccuracyEvaluate(valid_generator, 
+                                         converter      = converter, 
+                                         result_path    = TRAINING_TIME_PATH,
+                                         show_frequency = show_frequency,
+                                         prefix         = "validation")
         
         history = LossHistory(result_path=TRAINING_TIME_PATH)
         
@@ -90,7 +97,7 @@ def train(data_path                   = cfg.DATA_PATH,
         
         logger = CSVLogger(TRAINING_TIME_PATH + 'train_history.csv', separator=",", append=True)
         
-        callbacks = [eval_callback, history, checkpoint, logger]
+        callbacks = [train_eval_callback, valid_eval_callback, history, checkpoint, logger]
 
         model.compile(optimizer=optimizer, loss=losses)
         
