@@ -17,11 +17,10 @@ class CTCLabelConverter(object):
         self.character = dict_character + ['[CTCblank]']  # dummy '[CTCblank]' token for CTCLoss
         self.N = len(self.character)
         
-    def encode(self, text, max_string_length=25):
+    def encode(self, text):
         """convert text-label into text-index.
         input:
             text: text labels of each image. [batch_size]
-            max_string_length: max length of text label in the batch. 25 by default
         output:
             text: text index for CTCLoss. [batch_size, max_string_length]
             length: length of each text. [batch_size]
@@ -29,7 +28,7 @@ class CTCLabelConverter(object):
         length = [len(s) for s in text]
 
         # The index used for padding (=0) would not affect the CTC loss calculation.
-        batch_text = np.full(shape=(len(text), max_string_length), fill_value=-1)
+        batch_text = np.full(shape=(len(text), max(length)), fill_value=-1)
 
         for i, t in enumerate(text):
             text = list(t)
