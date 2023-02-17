@@ -28,7 +28,7 @@ class CTCLabelConverter(object):
         length = [len(s) for s in text]
 
         # The index used for padding (=0) would not affect the CTC loss calculation.
-        batch_text = np.full(shape=(len(text), max(length)), fill_value=-1)
+        batch_text = np.full(shape=(len(text), max(length)), fill_value=-1, dtype=np.int32)
 
         for i, t in enumerate(text):
             text = list(t)
