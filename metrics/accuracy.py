@@ -49,7 +49,7 @@ class CTCAccuracy(tf.keras.metrics.Metric):
         # A prediction considered correct if all its labels match the corresponding true sequence
         correct_predictions = tf.equal(matching_labels_count, y_true_shape[1])
         correct_predictions = tf.cast(correct_predictions, tf.float32)
-        score = K.mean(correct_predictions)
+        score = tf.reduce_mean(correct_predictions)
         self.accuracy.assign_add(score)
         
     def reset_state(self):
