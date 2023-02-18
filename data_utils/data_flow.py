@@ -37,7 +37,6 @@ def get_train_test_data(data_zipfile,
                                           target_size=target_size, 
                                           batch_size=batch_size, 
                                           character=character,
-                                          max_string_length=max_string_length,
                                           augmentor=augmentor,
                                           normalizer=normalizer)
 
@@ -54,7 +53,6 @@ def get_train_test_data(data_zipfile,
                                           target_size=target_size, 
                                           batch_size=batch_size, 
                                           character=character,
-                                          max_string_length=max_string_length,
                                           normalizer=normalizer)
     
     # data_test, _ = get_data(data_folder, phase='test')
@@ -73,7 +71,6 @@ class Train_Data_Sequence(Sequence):
                  target_size, 
                  batch_size, 
                  character, 
-                 max_string_length=25, 
                  augmentor=None, 
                  normalizer=None):
         self.data_path = dataset['data_path']
@@ -88,7 +85,6 @@ class Train_Data_Sequence(Sequence):
 
         self.normalizer = Normalizer(normalizer)
         
-        self.max_string_length = max_string_length
         self.label_converter = CTCLabelConverter(character)
         
     def __len__(self):
@@ -114,7 +110,7 @@ class Train_Data_Sequence(Sequence):
             batch_label.append(label)
 
         batch_image = np.array(batch_image)
-        batch_label, label_length = self.label_converter.encode(batch_label, max_string_length=self.max_string_length)
+        batch_label, label_length = self.label_converter.encode(batch_label)
         return batch_image, batch_label, label_length
 
 
@@ -124,7 +120,6 @@ class Valid_Data_Sequence(Sequence):
                  target_size, 
                  batch_size, 
                  character, 
-                 max_string_length=25, 
                  augmentor=None, 
                  normalizer=None):
         self.data_path = dataset['data_path']
@@ -137,7 +132,6 @@ class Valid_Data_Sequence(Sequence):
 
         self.normalizer = Normalizer(normalizer)
         
-        self.max_string_length = max_string_length
         self.label_converter = CTCLabelConverter(character)
         
     def __len__(self):
@@ -164,7 +158,7 @@ class Valid_Data_Sequence(Sequence):
             batch_label.append(label)
 
         batch_image = np.array(batch_image)
-        batch_label, label_length = self.label_converter.encode(batch_label, max_string_length=self.max_string_length)
+        batch_label, label_length = self.label_converter.encode(batch_label)
         return batch_image, batch_label, label_length
     
 
