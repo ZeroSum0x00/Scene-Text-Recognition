@@ -90,7 +90,7 @@ class AccuracyEvaluate(tf.keras.callbacks.Callback):
                 predicted_result_log += f'{dashed_line}'
                 print(predicted_result_log)
                 
-            print(f'\nCurrent accucary: {accuracy}%')
+            print(f'\nCurrent accucary: {accuracy}% ({n_correct} in {n_dataset} sample)')
             if self.save_best:
                 if accuracy > self.current_accuracy:
                     logger.info(f'Accuracy {self.prefix.split("_")[0]} score increase {self.current_accuracy:.2f}% to {accuracy:.2f}%')
