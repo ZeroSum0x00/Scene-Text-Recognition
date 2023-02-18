@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 from utils.logger import logger
