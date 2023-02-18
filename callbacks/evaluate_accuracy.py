@@ -35,7 +35,7 @@ class AccuracyEvaluate(tf.keras.callbacks.Callback):
         new_label = []
         for t in label:
             if t == current_char and t != -1:
-                new_label.append(-1)
+                new_label.append(len(self.converter.character) - 1)
                 new_label.append(t)
                 idx += 1
             else:
