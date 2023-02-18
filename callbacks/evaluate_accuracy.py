@@ -30,6 +30,18 @@ class AccuracyEvaluate(tf.keras.callbacks.Callback):
     def _sort_criteria(self, data):
         return data['probability']
     
+    def _valid_label(self, label):
+        current_char = None
+        new_label = []
+        for t in label:
+            if t == current_char and t != -1:
+                new_label.append(-1)
+                new_label.append(t)
+            else:
+                new_label.append(t)
+            current_char = t
+        return np.array(new_label, dtype=np.int32)
+    
     def on_epoch_end(self, epoch, logs=None):
         temp_epoch = epoch + 1
         n_correct = 0
@@ -42,7 +54,7 @@ class AccuracyEvaluate(tf.keras.callbacks.Callback):
                 
                 for i in range(labels.shape[0]):
                     result = {}
-                    label     = labels[i]
+                    label     = self._valid_label(labels[i])
                     label_idx = lenghts[i]
                     pred      = preds[i]
                     pred_idx  = preds_length[i]
