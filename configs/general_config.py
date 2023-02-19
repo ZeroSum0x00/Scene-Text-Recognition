@@ -5,19 +5,19 @@ STR_HIDDEN_DIMENTION            = 256
 
 STR_OUTPUT_DIMENTION            = 256
 
-STR_TARGET_SIZE                 = [32, 200, 3]
+STR_TARGET_SIZE                 = [32, 585, 1]
 
 
 # Training hyper-parameters
-DATA_PATH                       = "/home/vbpo/Desktop/TuNIT/working/Datasets/OCR"
+DATA_PATH                       = "/home/vbpo/Desktop/TuNIT/working/Datasets/IIIT5K"
 
-DATA_ANNOTATION_PATH            = "/home/vbpo/Desktop/TuNIT/working/Datasets/OCR/annotations"
+DATA_ANNOTATION_PATH            = "/home/vbpo/Desktop/TuNIT/working/Datasets/IIIT5K/annotations"
 
 DATA_DESTINATION_PATH           = None
 
 DATA_AUGMENTATION               = None
 
-DATA_NORMALIZER                 = 'divide'
+DATA_NORMALIZER                 = 'sub_divide'
 
 DATA_CHARACTER                  = "0123456789abcdefghijklmnopqrstuvwxyz"
 
@@ -35,7 +35,7 @@ TRAIN_BATCH_SIZE                = 32
 
 TRAIN_EPOCH_INIT                = 0
 
-TRAIN_EPOCH_END                 = 300
+TRAIN_EPOCH_END                 = 1000
 
 TRAIN_OPTIMIZER                 = 'adam'
 
