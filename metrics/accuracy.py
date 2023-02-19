@@ -7,7 +7,7 @@ DECODED_PADDING_CONSTANT = -1
 
 
 class CTCAccuracy(tf.keras.metrics.Mean):
-    def __init__(self, name="accuracy", dtype=None):
+    def __init__(self, name="CTCAccuracy", dtype=None):
         super().__init__(name=name, dtype=dtype)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
