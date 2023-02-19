@@ -42,6 +42,11 @@ def get_data(data_dir, annotation_dir,
         annotation_file = verify_folder(annotation_dir) + f'{phase}.json'
         parser = ParseJSON(data_dir, annotation_file, character, max_string_length, sensitive, load_memory, check_data=check_data, *args, **kwargs)
         data_extraction = parser()
+    elif data_type.lower() == 'image':
+        image_files = sorted(get_files(data_dir, extensions=['jpg', 'jpeg', 'png']))
+        parser = ParseImageName(data_dir, character, max_string_length, sensitive, load_memory, check_data=check_data, *args, **kwargs)
+        data_extraction = parser(image_files)
+        
     dict_data = {
         'data_path': verify_folder(data_dir),
         'data_extractor': data_extraction
