@@ -3,29 +3,23 @@ from tensorflow.keras import backend as K
 
 
 DECODED_PADDING_CONSTANT = -1
+
+
 class CTCAccuracy(tf.keras.metrics.Metric):
     def __init__(self, 
                  y_true_padding_const=None, 
-                 y_pred_length=None,
                  name="CTCAccuracy", **kwargs):
         super(CTCAccuracy, self).__init__(name=name, **kwargs)
         self.y_true_padding_const = y_true_padding_const
-        self.y_pred_length = y_pred_length
         self.accuracy = self.add_weight('accuracy', initializer='zeros')
         
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_pred_shape = tf.shape(y_pred)
         y_true_shape = tf.shape(y_true)
 
-        if self.y_pred_length is None:
-            self.y_pred_length = tf.fill((y_pred_shape[0],), y_pred_shape[1])
-        else:
-            max_y_pred_length = tf.reduce_max(self.y_pred_length)
-            if max_y_pred_length < y_pred_shape[1]:
-                y_pred = y_pred[:, :max_y_pred_length, :]
-                y_pred_shape = tf.shape(y_pred)
+        y_pred_length = tf.fill(dims=[y_pred_shape[0],], value=y_pred_shape[1])
 
-        y_pred = tf.keras.backend.ctc_decode(y_pred, self.y_pred_length)[0][0]
+        y_pred = tf.keras.backend.ctc_decode(y_pred, y_pred_length)[0][0]
         y_pred_shape = y_pred_shape[:-1]  # y_pred shape after the decoding loses the last dimension (classes count)
 
         # If y_true is padded, update it to use the same padding constant as y_pred_decoded
