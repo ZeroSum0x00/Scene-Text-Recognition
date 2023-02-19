@@ -63,9 +63,7 @@ class Attention(tf.keras.layers.Layer):
 
             for i in range(num_steps):
                 char_onehots = self._char_to_onehot(text[:, i], onehot_dim=self.num_classes)
-
                 hidden, alpha = self.attention_cell(hidden, inputs, char_onehots)
-
                 output_hiddens[:, i, :] = hidden[0]
 
             probs = self.generator(output_hiddens)
