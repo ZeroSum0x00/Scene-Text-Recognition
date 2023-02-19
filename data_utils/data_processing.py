@@ -4,7 +4,7 @@ import math
 import numpy as np
 from glob import glob
 from utils.files import extract_zip, verify_folder
-from data_utils import ParseTXT, ParseJSON
+from data_utils import ParseTXT, ParseJSON, ParseImageName
  
 
 def extract_data_folder(data_dir, dst_dir=None):
