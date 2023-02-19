@@ -4,6 +4,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
 from models import STR, VGG_BiLSTM, CTCLabelConverter
 from losses import CTCLoss
+from metrics import CTCAccuracy
 from callbacks import AccuracyEvaluate, LossHistory
 from data_utils.data_flow import get_train_test_data
 from utils.train_processing import create_folder_weights, train_prepare
@@ -65,19 +66,20 @@ def train(data_path                   = cfg.DATA_PATH,
                 model.load_models(weight_objects)
 
 
-        lr_schedule = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr_init, decay_steps=600000, alpha=0.01)
+        lr_schedule = tf.keras.callbacks.ReduceLROnPlateau(factor=0.5, patience=8, min_delta=0, verbose=1)
         
-        optimizer = Adam(learning_rate=lr_schedule)
+        optimizer = Adam(learning_rate=0.0001, global_clipnorm=5.0)
         
         losses = [
             {'loss': CTCLoss(), 'coeff': 1},
-            # {'loss': WeightedBCE(), 'coeff': 1},
         ]
         
+        metric_accuracy = CTCAccuracy()
+
         train_eval_callback = AccuracyEvaluate(train_generator, 
                                          converter      = converter, 
                                          result_path    = TRAINING_TIME_PATH,
-                                         show_frequency = show_frequency,
+                                         show_frequency = show_frequency * 10,
                                          prefix         = "train")
 
         valid_eval_callback = AccuracyEvaluate(valid_generator, 
@@ -99,7 +101,7 @@ def train(data_path                   = cfg.DATA_PATH,
         
         callbacks = [train_eval_callback, valid_eval_callback, history, checkpoint, logger]
 
-        model.compile(optimizer=optimizer, loss=losses)
+        model.compile(optimizer=optimizer, loss=losses, metrics=[metric_accuracy])
         
         history = model.fit(train_generator,
                             steps_per_epoch  = train_generator.N // batch_size,
