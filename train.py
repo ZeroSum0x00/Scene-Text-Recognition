@@ -56,7 +56,7 @@ def train(data_path                   = cfg.DATA_PATH,
         converter = CTCLabelConverter(character)
         num_class = converter.N
 
-        architecture = VGG_BiLSTM(str_filters, str_hidden_dim, str_output_dim, num_class)
+        architecture = VGG_BiLSTM(str_filters, str_hidden_dim, num_class)
         model = STR(architecture)
 
         if weight_type and weight_objects:
