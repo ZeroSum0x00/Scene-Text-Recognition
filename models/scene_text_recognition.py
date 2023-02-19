@@ -40,15 +40,12 @@ class STR(tf.keras.Model):
                                                        lenghts=lenghts, 
                                                        loss_object=self.loss_object)
         gradients = tape.gradient(loss_value, self.architecture.trainable_variables)
-        # Same torch.nn.utils.clip_grad_norm_
-        # https://stackoverflow.com/questions/36498127/how-to-apply-gradient-clipping-in-tensorflow
-        gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
         self.optimizer.apply_gradients(zip(gradients, self.architecture.trainable_variables))
 
         self.total_loss_tracker.update_state(loss_value)
         if self.list_metrics:
             for metric in self.list_metrics:
-                metric.reset_state()
+                # metric.reset_state()
                 metric.update_state(labels, y_pred)
         results = {m.name: m.result() for m in self.metrics}
         return results
@@ -63,7 +60,7 @@ class STR(tf.keras.Model):
         self.total_loss_tracker.update_state(loss_value)
         if self.list_metrics:
             for metric in self.list_metrics:
-                metric.reset_state()
+                # metric.reset_state()
                 metric.update_state(labels, y_pred)
         results = {m.name: m.result() for m in self.metrics}
         return results
