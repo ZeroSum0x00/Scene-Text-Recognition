@@ -71,7 +71,9 @@ class AccuracyEvaluate(tf.keras.callbacks.Callback):
                         result['TF'] = "True" if label_str == pred_str else "False"
                         list_results.append(result)
             accuracy = n_correct / float(n_dataset) * 100
-            
+            if accuracy > 100.0:
+                accuracy = 100.0
+                
             if self.verbose:
                 # list_results.sort(reverse=True, key=self._sort_criteria)
                 list_results = list_results[:10]
