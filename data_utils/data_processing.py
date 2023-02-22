@@ -101,6 +101,8 @@ class Normalizer():
     def _sub_divide(self, image, mean=None, std=None, target_size=None, interpolation=None, keep_ratio_with_pad=False):
         if target_size and (image.shape[0] != target_size[0] or image.shape[1] != target_size[1]):
             image = self.__resize_with_pad(image, target_size, interpolation)
+        if len(image.shape) == 2:
+            image = np.expand_dims(image, axis=-1)
         image = image.astype(np.float32)
         image = image / 127.5 - 1
         if mean or std:
@@ -112,6 +114,8 @@ class Normalizer():
     def _divide(self, image, mean=None, std=None, target_size=None, interpolation=None, keep_ratio_with_pad=False):
         if target_size and (image.shape[0] != target_size[0] or image.shape[1] != target_size[1]):
             image = self.__resize_with_pad(image, target_size, interpolation)
+        if len(image.shape) == 2:
+            image = np.expand_dims(image, axis=-1)
         image = image.astype(np.float32)
         image = image / 255.0
         if mean or std:
@@ -123,6 +127,8 @@ class Normalizer():
     def _basic(self, image, mean=None, std=None, target_size=None, interpolation=None, keep_ratio_with_pad=False):
         if target_size and (image.shape[0] != target_size[0] or image.shape[1] != target_size[1]):
             image, mask, bboxes = self.__resize_basic_mode(image, mask, bboxes, target_size, interpolation)
+        if len(image.shape) == 2:
+            image = np.expand_dims(image, axis=-1)
         image = image.astype(np.float32)
         if mean or std:
             image = self.__get_standard_deviation(image, mean, std)
