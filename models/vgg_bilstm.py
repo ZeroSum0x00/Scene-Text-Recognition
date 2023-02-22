@@ -70,7 +70,7 @@ class BidirectionalLSTM(tf.keras.layers.Layer):
 
 
 class VGG_BiLSTM(tf.keras.Model):
-    def __init__(self, num_filters, hidden_dim, output_dim, n_classes, *args, **kwargs):
+    def __init__(self, num_filters, hidden_dim, n_classes, *args, **kwargs):
         super(VGG_BiLSTM, self).__init__(*args, **kwargs)
         self.num_filters = num_filters
         self.hidden_dim = hidden_dim
