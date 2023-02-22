@@ -74,7 +74,6 @@ class VGG_BiLSTM(tf.keras.Model):
         super(VGG_BiLSTM, self).__init__(*args, **kwargs)
         self.num_filters = num_filters
         self.hidden_dim = hidden_dim
-        self.output_dim = output_dim
         self.n_classes = n_classes
         
     def build(self, input_shape):
