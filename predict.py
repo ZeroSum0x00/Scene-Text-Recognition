@@ -4,62 +4,36 @@ import numpy as np
 import tensorflow as tf
 
 from models import STR, VGG_BiLSTM, CTCLabelConverter
-from visualizer import visual_image, tensor_value_info
 from utils.files import get_files
-
-
-def resize_with_pad(image, target_size, interpolation=cv2.INTER_NEAREST):
-    try:
-        h, w, _ = image.shape
-    except:
-        h, w = image.shape
-    ratio = w / float(h)
-    if math.ceil(target_size[0] * ratio) > target_size[1]:               
-        resized_w = target_size[1]                                     
-    else:
-        resized_w = math.ceil(target_size[0] * ratio)
-
-    image = cv2.resize(image, (resized_w, target_size[0]), interpolation=interpolation)
-    new_h, new_w, _ = image.shape
-    pad_image = np.zeros(target_size)
-    pad_image[:, :new_w, :] = image
-
-    if target_size[1] != new_w:  # add border Pad
-        pad_image[:, new_w:, :] = np.expand_dims(image[:, new_w-1, :], axis=1)
-    return pad_image
-
-
-def preprocess_input(image):
-    image /= 255.0
-    return image
+from utils.post_processing import image_preprocessing
 
 
 if __name__ == '__main__':
-    image_path = "./images"
+    image_path = "/home/vbpo/Desktop/TuNIT/working/Datasets/LP6/validation/"
 
-    target_shape = cfg.STR_TARGET_SIZE
-    
+    target_shape = [32, 200, 1]
+
     character    = cfg.DATA_CHARACTER
-    
-    converter    = CTCLabelConverter(character)
-    
-    num_class    = len(converter.character)
-     
-    num_filters  = cfg.STR_FILTERS
-    
-    hidden_dim   = cfg.STR_HIDDEN_DIMENTION
-    
-    output_dim   = cfg.STR_OUTPUT_DIMENTION
 
-    architecture = VGG_BiLSTM(str_filters, str_hidden_dim, str_output_dim, num_class)
-    
-    model = STR(architecture, image_size=target_shape)
+    converter    = CTCLabelConverter(character)
+
+    num_class    = len(converter.character)
+
+    num_filters  = cfg.STR_FILTERS
+
+    hidden_dim   = cfg.STR_HIDDEN_DIMENTION
+
+
+    architecture = VGG_BiLSTM(num_filters, hidden_dim, num_class)
+
+    model = STR(architecture, image_size=target_shape)        
 
     weight_type    = "weights"
 
     weight_objects = [        
                         {
-                            'path': './saved_weights/20230126-003551/best_weights',
+                            'path': './saved_weights/20230222-134031/best_validation_accuracy',
+                            # 'path': './saved_weights/20230223-083045/best_validation_accuracy',
                             'stage': 'full',
                             'custom_objects': None
                         }
@@ -71,13 +45,27 @@ if __name__ == '__main__':
         elif weight_type == "models":
             model.load_models(weight_objects)
 
-    images = get_files(image_path, extensions=['png', 'jpg'])
-    
-    for image in images:
-        image = cv2.imread(f"{image_path}/{image}")
-        image_data  = resize_with_pad(image, target_shape)
-        image_data  = preprocess_input(image_data.astype(np.float32))
-        image_data  = np.expand_dims(image_data, axis=0)
-        preds, preds_length, preds_max_prob = model.predict(image_data)
-        preds_str = converter.decode(preds, preds_length)
-        visual_image([image], [str(preds_str)])
+    images = get_files(image_path, extensions=['jpg'])
+
+    total_num = len(images)
+    n_correct = 0
+    for name in tqdm(images):
+        if len(target_shape) == 2 or target_shape[-1] == 1:
+            read_mode = 0
+        else:
+            read_mode = 1
+        label_str = name.split('_')[-1].split('.')[0]
+        image = cv2.imread(f"{image_path}/{name}", read_mode)
+        image = image_preprocessing(image, 
+                                    target_size=target_shape, 
+                                    interpolation=cv2.INTER_NEAREST)
+        image  = tf.expand_dims(image, axis=0)
+
+        pred, preds_length, pred_max_prob = model.predict(image)
+        pred_str = converter.decode(pred, preds_length)
+
+        if label_str == pred_str:
+            n_correct += 1
+            
+    accuracy = n_correct / float(total_num) * 100
+    print(f'\nCurrent accucary: {accuracy}% ({n_correct} in {total_num} sample)')
