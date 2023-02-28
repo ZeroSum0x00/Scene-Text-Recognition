@@ -78,7 +78,7 @@ def train(data_path                   = cfg.DATA_PATH,
         
         loss_history = LossHistory(result_path=TRAINING_TIME_PATH)
         
-        accuracy_history = AccuracyHistory(result_path=TRAINING_TIME_PATH)
+        accuracy_history = AccuracyHistory(result_path=TRAINING_TIME_PATH, save_best=True)
         
         checkpoint = ModelCheckpoint(TRAINING_TIME_PATH + 'checkpoint_{epoch:04d}/saved_str_weights', 
                                      monitor='val_loss',
