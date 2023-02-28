@@ -5,7 +5,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 from models import STR, CRNN, VGG, CTCLabelConverter
 from losses import CTCLoss
 from metrics import CTCAccuracy
-from callbacks import AccuracyEvaluate, LossHistory
+from callbacks import LossHistory, AccuracyHistory
 from data_utils.data_flow import get_train_test_data
 from utils.train_processing import create_folder_weights, train_prepare
 from configs import general_config as cfg
@@ -66,7 +66,6 @@ def train(data_path                   = cfg.DATA_PATH,
             elif weight_type == "models":
                 model.load_models(weight_objects)
 
-
         lr_schedule = tf.keras.callbacks.ReduceLROnPlateau(factor=0.5, patience=8, min_delta=0, verbose=1)
         
         optimizer = Adam(learning_rate=0.0001, global_clipnorm=5.0)
@@ -76,20 +75,10 @@ def train(data_path                   = cfg.DATA_PATH,
         ]
         
         metric_accuracy = CTCAccuracy()
-
-        train_eval_callback = AccuracyEvaluate(train_generator, 
-                                         converter      = converter, 
-                                         result_path    = TRAINING_TIME_PATH,
-                                         show_frequency = show_frequency * 10,
-                                         prefix         = "train")
-
-        valid_eval_callback = AccuracyEvaluate(valid_generator, 
-                                         converter      = converter, 
-                                         result_path    = TRAINING_TIME_PATH,
-                                         show_frequency = show_frequency,
-                                         prefix         = "validation")
         
-        history = LossHistory(result_path=TRAINING_TIME_PATH)
+        loss_history = LossHistory(result_path=TRAINING_TIME_PATH)
+        
+        accuracy_history = AccuracyHistory(result_path=TRAINING_TIME_PATH)
         
         checkpoint = ModelCheckpoint(TRAINING_TIME_PATH + 'checkpoint_{epoch:04d}/saved_str_weights', 
                                      monitor='val_loss',
@@ -100,7 +89,7 @@ def train(data_path                   = cfg.DATA_PATH,
         
         logger = CSVLogger(TRAINING_TIME_PATH + 'train_history.csv', separator=",", append=True)
         
-        callbacks = [train_eval_callback, valid_eval_callback, history, checkpoint, logger]
+        callbacks = [accuracy_history, loss_history, checkpoint, logger]
 
         model.compile(optimizer=optimizer, loss=losses, metrics=[metric_accuracy])
         
