@@ -1,4 +1,5 @@
 from .scene_text_recognition import STR
-from .vgg_bilstm import VGG_BiLSTM
+from .crnn import CRNN
 
 from .layers.label_converter import CTCLabelConverter
+from .architectures import VGG_FeatureExtractor
