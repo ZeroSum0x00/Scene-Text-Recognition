@@ -44,7 +44,7 @@ class AccuracyHistory(tf.keras.callbacks.Callback):
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
         plt.title('A Accuracy Curve')
-        plt.legend(loc="upper right")
+        plt.legend(loc="lower right")
 
         plt.savefig(os.path.join(self.result_path, "epoch_accuracy.png"))
 
