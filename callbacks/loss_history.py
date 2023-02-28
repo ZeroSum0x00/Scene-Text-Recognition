@@ -15,7 +15,7 @@ from matplotlib import pyplot as plt
 class LossHistory(tf.keras.callbacks.Callback):
     def __init__(self, 
                  result_path=None, 
-                 save_best=True,
+                 save_best=False,
                  max_ratio=1.0):
         super(LossHistory, self).__init__()
 
