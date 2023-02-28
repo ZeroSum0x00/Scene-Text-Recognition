@@ -1,7 +1,7 @@
 import cv2
+import math
 import numpy as np
-from configs import general_config as cfg
-from utils.logger import logger
+
 
 def resize_with_pad(image, target_size, interpolation=None):
     if len(image.shape) == 3:
