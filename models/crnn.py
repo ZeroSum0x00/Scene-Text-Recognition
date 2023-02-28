@@ -3,7 +3,6 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Reshape
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Softmax
-from models.architectures import VGG_FeatureExtractor
 from models.layers import BidirectionalLSTM
 from utils.train_processing import losses_prepare
 
@@ -17,7 +16,6 @@ class CRNN(tf.keras.Model):
         self.n_classes   = n_classes
         
     def build(self, input_shape):
-        self.feature_extractor  = VGG_FeatureExtractor(self.num_filters)
         self.map_to_sequence    = Reshape(target_shape=(-1, self.num_filters[-1]))
         self.sequence_modeling  = BidirectionalLSTM(self.hidden_dim)
         self.sequence_modeling2 = BidirectionalLSTM(self.hidden_dim)
@@ -25,7 +23,7 @@ class CRNN(tf.keras.Model):
         self.final_activation   = Softmax()
         
     def call(self, inputs, training=False):
-        x = self.feature_extractor(inputs, training=training)
+        x = self.backbone(inputs, training=training)
         x = self.map_to_sequence(x)
         x = self.sequence_modeling(x)
         x = self.sequence_modeling2(x)
