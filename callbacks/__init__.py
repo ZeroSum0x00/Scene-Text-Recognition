@@ -1,2 +1,2 @@
-from .evaluate_accuracy import AccuracyEvaluate
+from .accuracy_history import AccuracyHistory
 from .loss_history import LossHistory
