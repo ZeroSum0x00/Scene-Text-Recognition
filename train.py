@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
-from models import STR, VGG_BiLSTM, CTCLabelConverter
+from models import STR, CRNN, VGG, CTCLabelConverter
 from losses import CTCLoss
 from metrics import CTCAccuracy
 from callbacks import AccuracyEvaluate, LossHistory
@@ -56,7 +56,8 @@ def train(data_path                   = cfg.DATA_PATH,
         converter = CTCLabelConverter(character)
         num_class = converter.N
 
-        architecture = VGG_BiLSTM(str_filters, str_hidden_dim, num_class)
+        backbone = VGG(str_filters)
+        architecture = CRNN(backbone, str_filters, str_hidden_dim, num_class)
         model = STR(architecture)
 
         if weight_type and weight_objects:
