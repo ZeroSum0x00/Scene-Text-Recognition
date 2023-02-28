@@ -3,7 +3,7 @@ import math
 import numpy as np
 import tensorflow as tf
 
-from models import STR, VGG_BiLSTM, CTCLabelConverter
+from models import STR, CRNN, CTCLabelConverter, VGG
 from utils.files import get_files
 from utils.post_processing import image_preprocessing
 
@@ -24,7 +24,9 @@ if __name__ == '__main__':
     hidden_dim   = cfg.STR_HIDDEN_DIMENTION
 
 
-    architecture = VGG_BiLSTM(num_filters, hidden_dim, num_class)
+    backbone = VGG(num_filters)
+
+    architecture = CRNN(backbone, num_filters, hidden_dim, num_class)
 
     model = STR(architecture, image_size=target_shape)        
 
