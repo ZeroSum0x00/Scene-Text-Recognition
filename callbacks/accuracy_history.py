@@ -63,13 +63,14 @@ class AccuracyHistory(tf.keras.callbacks.Callback):
         plt.close("all")
         
         if self.save_best:
+            print('')
             if train_accuracy > self.current_train_accuracy and train_accuracy > self.min_ratio:
-                logger.info(f'Train accuracy score increase {self.current_train_accuracy:.2f}% to {train_accuracy*100:.2f}%')
+                logger.info(f'Train accuracy score increase {self.current_train_accuracy*100:.2f}% to {train_accuracy*100:.2f}%')
                 logger.info(f'Save best train accuracy weights to {self.result_path}best_train_accuracy')
                 self.model.save_weights(self.result_path + f'best_train_accuracy')
                 self.current_train_accuracy = train_accuracy
             if valid_accuracy > self.current_valid_accuracy and valid_accuracy > self.min_ratio:
-                logger.info(f'Validation accuracy score increase {self.current_valid_accuracy:.2f}% to {valid_accuracy*100:.2f}%')
+                logger.info(f'Validation accuracy score increase {self.current_valid_accuracy*100:.2f}% to {valid_accuracy*100:.2f}%')
                 logger.info(f'Save best validation accuracy weights to {self.result_path}best_valid_accuracy')
                 self.model.save_weights(self.result_path + f'best_valid_accuracy')
                 self.current_valid_accuracy = valid_accuracy
