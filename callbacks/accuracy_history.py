@@ -15,7 +15,7 @@ from matplotlib import pyplot as plt
 class AccuracyHistory(tf.keras.callbacks.Callback):
     def __init__(self, 
                  result_path=None, 
-                 save_best=True,
+                 save_best=False,
                  min_ratio=0.2):
         super(AccuracyHistory, self).__init__()
 
