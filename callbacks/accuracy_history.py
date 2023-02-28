@@ -40,17 +40,6 @@ class AccuracyHistory(tf.keras.callbacks.Callback):
         plt.figure()
         plt.plot(iters, self.train_accuracy_list, 'red', linewidth = 2, label='train accuracy')
         plt.plot(iters, self.valid_accuracy_list, 'coral', linewidth = 2, label='valid accuracy')
-        try:
-            if len(self.train_accuracy_list) < 25:
-                num = 5
-            else:
-                num = 15
-            
-            plt.plot(iters, scipy.signal.savgol_filter(self.train_accuracy_list, num, 3), 'green', linestyle = '--', linewidth = 2, label='smooth train accuracy')
-            plt.plot(iters, scipy.signal.savgol_filter(self.valid_accuracy_list, num, 3), '#8B4513', linestyle = '--', linewidth = 2, label='smooth valid accuracy')
-        except:
-            pass
-
         plt.grid(True)
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
