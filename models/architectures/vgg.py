@@ -7,9 +7,9 @@ from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import SpatialDropout2D
 
 
-class VGG_FeatureExtractor(tf.keras.layers.Layer):
+class VGG(tf.keras.layers.Layer):
     def __init__(self, num_filters, *args, **kwargs):
-        super(VGG_FeatureExtractor, self).__init__(*args, **kwargs)
+        super(VGG, self).__init__(*args, **kwargs)
         self.num_filters = num_filters
     
     def build(self, input_shape):
