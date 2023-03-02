@@ -27,11 +27,12 @@ def GRCL(inputs, filters, kernel_size, num_iteration):
     for i in range(num_iteration):
         next_wgr_x = Conv2D(filters=filters, kernel_size=(1, 1), strides=(1, 1), padding='valid', use_bias=False)(x)
         next_wr_x  = Conv2D(filters=filters, kernel_size=kernel_size, strides=(1, 1), padding='same', use_bias=False)(x)
-        x = GRCL_unit([wgf_u, next_wgr_x, wf_u, next_wr_x])
+        x          = GRCL_unit([wgf_u, next_wgr_x, wf_u, next_wr_x])
     return x
 
 
-def RCNN_FeatureExtractor(input_shape=(32, 100, 1)):
+def GRCNN_FeatureExtractor(input_shape=(32, 100, 1)):
+    """ FeatureExtractor of GRCNN (https://papers.nips.cc/paper/6637-gated-recurrent-convolution-neural-network-for-ocr.pdf) """
     img_input = Input(shape=input_shape)
     x = Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1), padding='same')(img_input)
     x = Activation('relu')(x)
@@ -44,5 +45,5 @@ def RCNN_FeatureExtractor(input_shape=(32, 100, 1)):
     x = MaxPooling2D(pool_size=(2, 2), strides=(2, 1), padding='same')(x)
     x = Conv2D(filters=512, kernel_size=(2, 2), strides=(1, 1), padding='valid', use_bias=False)(x)
     x = BatchNormalization()(x)
-    model = Model(inputs=img_input, outputs=x, name='RCNN')
+    model = Model(inputs=img_input, outputs=x, name='RCNN-Feature-Extractor')
     return model
