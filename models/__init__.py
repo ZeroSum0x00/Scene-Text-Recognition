@@ -3,5 +3,5 @@ from .crnn import CRNN
 
 from .layers.label_converter import CTCLabelConverter
 from .architectures.vgg import VGG_FeatureExtractor
-from .architectures.rcnn import RCNN_FeatureExtractor
+from .architectures.grcnn import GRCNN_FeatureExtractor
 from .architectures.resnet import ResNet_FeatureExtractor
