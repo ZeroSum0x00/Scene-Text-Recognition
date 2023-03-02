@@ -56,6 +56,7 @@ class Attention(tf.keras.layers.Layer):
 
         # output_hiddens = tf.fill(dims=[bs, num_steps, self.hidden_dim], value=0.).numpy()
         output_hiddens = np.full([bs, num_steps, self.hidden_dim], 0.)
+
         hidden = (tf.fill(dims=[bs, self.hidden_dim], value=0.),
                   tf.fill(dims=[bs, self.hidden_dim], value=0.))
         if training:
@@ -70,12 +71,13 @@ class Attention(tf.keras.layers.Layer):
         else:
             targets = tf.fill(dims=[bs], value=0)
             # probs = tf.fill(dims=[bs, num_steps, self.num_classes], value=0.)
-            probs = np.full([bs, num_steps, self.hidden_dim], 0.)
+            probs = np.full([bs, num_steps, self.num_classes], 0.)
+
             for i in range(num_steps):
                 char_onehots = self._char_to_onehot(targets, onehot_dim=self.num_classes)
                 hidden, alpha = self.attention_cell(hidden, inputs, char_onehots)
                 probs_step = self.generator(hidden[0])
                 probs[:, i, :] = probs_step
-                _, next_input = tf.math.argmax(probs_step, axis=1)
+                next_input = tf.math.argmax(probs_step, axis=1)
                 targets = next_input
         return probs  # batch_size x num_steps x num_classes
