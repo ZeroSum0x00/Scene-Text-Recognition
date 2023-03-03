@@ -1,0 +1,6 @@
+tensorflow==2.9
+opencv-python
+tqdm
+scipy
+scikit-learn
+matplotlib
