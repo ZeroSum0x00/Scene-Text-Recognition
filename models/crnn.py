@@ -8,16 +8,16 @@ from utils.train_processing import losses_prepare
 
 
 class CRNN(tf.keras.Model):
-    def __init__(self, backbone, num_filters, hidden_dim, n_classes, *args, **kwargs):
+    def __init__(self, backbone, sequence_dim, hidden_dim, n_classes, *args, **kwargs):
         super(CRNN, self).__init__(*args, **kwargs)
         self.backbone    = backbone
-        self.num_filters = num_filters
+        self.sequence_dim = sequence_dim
         self.hidden_dim  = hidden_dim
         self.n_classes   = n_classes
         
     def build(self, input_shape):
-        self.map_to_sequence    = Reshape(target_shape=(-1, self.num_filters[-1]))
-        self.sequence_modeling  = BidirectionalLSTM(self.hidden_dim)
+        self.map_to_sequence    = Reshape(target_shape=(-1, self.sequence_dim))
+        self.sequence_modeling1 = BidirectionalLSTM(self.hidden_dim)
         self.sequence_modeling2 = BidirectionalLSTM(self.hidden_dim)
         self.predictor          = Dense(units=self.n_classes)
         self.final_activation   = Softmax()
@@ -25,8 +25,8 @@ class CRNN(tf.keras.Model):
     def call(self, inputs, training=False):
         x = self.backbone(inputs, training=training)
         x = self.map_to_sequence(x)
-        x = self.sequence_modeling(x)
-        x = self.sequence_modeling2(x)
+        x = self.sequence_modeling1(x, training=training)
+        x = self.sequence_modeling2(x, training=training)
         x = self.predictor(x)
         x = self.final_activation(x)
         return x
