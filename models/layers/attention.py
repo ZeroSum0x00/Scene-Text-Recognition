@@ -60,8 +60,6 @@ class Attention(tf.keras.layers.Layer):
         hidden = (tf.fill(dims=[bs, self.hidden_dim], value=0.),
                   tf.fill(dims=[bs, self.hidden_dim], value=0.))
         if training:
-            output_list = []
-
             for i in range(num_steps):
                 char_onehots = self._char_to_onehot(text[:, i], onehot_dim=self.num_classes)
                 hidden, alpha = self.attention_cell(hidden, inputs, char_onehots)
