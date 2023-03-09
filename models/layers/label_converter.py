@@ -54,7 +54,8 @@ class CTCLabelConverter(object):
 class AttnLabelConverter(object):
     """ Convert between text-label and text-index """
 
-    def __init__(self, character):
+    def __init__(self, character, batch_max_length=25):
+        self.batch_max_length = batch_max_length
         list_token = ['[GO]', '[s]']
         list_character = list(character)
         self.character = list_token + list_character
@@ -64,11 +65,11 @@ class AttnLabelConverter(object):
             self.dict[char] = i
         self.N = len(self.character)
         
-    def encode(self, text, batch_max_length=25):
+    def encode(self, text):
         length = [len(s) + 1 for s in text]
 
-        batch_max_length += 1
-        batch_text = np.full(shape=(len(text), batch_max_length+1), fill_value=0, dtype=np.int32)
+        self.batch_max_length += 1
+        batch_text = np.full(shape=(len(text), self.batch_max_length + 1), fill_value=0, dtype=np.int32)
 
         for i, t in enumerate(text):
             text = list(t)
