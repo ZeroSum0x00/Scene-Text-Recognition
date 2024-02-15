@@ -1,0 +1,120 @@
+Dataset:
+    data_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K'
+    annotation_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K/annotations'
+    data_info:
+        data_type: 'lmdb'
+        character: &char '0123456789abcdefghijklmnopqrstuvwxyz'
+        max_string_length: &max_length 50
+        color_space: 'rgb'
+        sensitive: False
+        check_data: False
+        load_memory: False
+    data_normalizer:
+        norm_type: 'sub_divide'
+        norm_mean: null
+        norm_std: null
+        norm_resize_with_pad: False
+    data_augmentation:
+        train:
+            # - RandomRotate:
+            #     angle_range: 15
+            #     padding_color: 255
+            #     keep_shape: False
+            # - RandomGaussianBlur:
+            #     sigma_range: [0.4, 0.8]
+            # - RandomBrightness:
+            #     delta_range: 150
+            # - RandomErodeDilate:
+            #     kernel_size: [3, 3]
+            # - RandomSaltAndPepper:
+            #     ratio_range: 0.3
+            #     phi_range: 0.1
+            # - RandomSharpen:
+            #     lightness_range: [0.75, 2.0]
+            #     alpha_range: 0.1
+        valid:
+            # - RandomRotate:
+            #     angle_range: 15
+            #     padding_color: 255
+            #     keep_shape: False
+            # - RandomBrightness:
+            #     delta_range: 100
+        test:
+    data_loader_mode: 0
+
+Model:
+    input_shape: [32, 200, 3]
+    weight_path: null
+    load_weight_type: null
+    Architecture:
+        name: ACRNN
+    LabelConverter:
+        name: AttnLabelConverter
+        character: *char
+        batch_max_length: *max_length
+    Backbone:
+        name: VGG_FeatureExtractor
+        num_filters: [64, 128, 256, 512]
+    AttentionLayer:
+        name: STRAttention
+        hidden_dim: 512
+        batch_max_length: *max_length
+    SequenceLayer:
+        name: MBidirectionalLSTM
+        units: 256
+        use_dense: False
+        num_layer: 2
+    TransformLayer:
+        
+Train:
+    mode: 'graph'
+    save_weight_path: &save_weight './saved_weights/'
+    save_weight_type: &save_type 'tf'
+    batch_size: 64
+    epoch:
+        start: 0
+        end: 1000
+        
+Losses:
+    - AttentionEntropyLoss:
+        coeff: 1
+
+Optimizer:
+    name: Adam
+    beta_1: 0.9
+    beta_2: 0.999
+    learning_rate: 0.0001
+    global_clipnorm: 5.0
+
+Metrics:
+    - AttentionCharAccuracy:
+    - AttentionWordAccuracy:
+    
+Callbacks:
+    - MetricHistory:
+        save_best: True
+        save_format: *save_type
+    - LossHistory:
+        save_best: False
+        save_format: *save_type
+    - ModelCheckpoint:
+        extend_path: 'weights/checkpoint_{epoch:04d}/saved_str_weights'
+        monitor: 'val_loss'
+        save_weights_only: True
+        save_freq: 'epoch'
+        period: 100
+        verbose: 1
+    - TensorBoard:
+        extend_path: 'logs'
+        update_freq: 1
+    - CSVLogger:
+        extend_path: 'summary/train_history.csv'
+        separator: ","
+        append: True
+    - TrainLogger:
+        extend_path: 'logs/training_log.log'
+    - TrainSummary:
+        extend_path: 'summary/train_summary.txt'
+
+Test:
+    data: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K/test'

@@ -1,0 +1,7 @@
+tensorflow
+opencv-python
+tqdm
+scipy
+scikit-learn
+matplotlib
+lmdb
