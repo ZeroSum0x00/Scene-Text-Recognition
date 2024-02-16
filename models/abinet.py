@@ -256,10 +256,10 @@ class PositionAttention(tf.keras.layers.Layer):
             return attn_result, None
 
 
-class TransformerEncoderLayer(tf.keras.layers.Layer):
+class TransformerEncoder(tf.keras.layers.Layer):
 
     def __init__(self, embed_dim, num_heads, out_dim=2048, drop_rate=0.1, *args, **kwargs):
-        super(TransformerEncoderLayer, self).__init__(*args, **kwargs)
+        super(TransformerEncoder, self).__init__(*args, **kwargs)
         self.embed_dim     = embed_dim
         self.num_heads     = num_heads
         self.out_dim       = out_dim
@@ -298,10 +298,10 @@ class TransformerEncoderLayer(tf.keras.layers.Layer):
         return x
 
 
-class TransformerDecoderLayer(tf.keras.layers.Layer):
+class TransformerDecoder(tf.keras.layers.Layer):
 
     def __init__(self, embed_dim, num_heads, out_dim=2048, activation="relu", auxiliary_attn=True, siamese=False, drop_rate=0.1, *args, **kwargs):
-        super(TransformerDecoderLayer, self).__init__(*args, **kwargs)
+        super(TransformerDecoder, self).__init__(*args, **kwargs)
         self.embed_dim     = embed_dim
         self.num_heads     = num_heads
         self.out_dim       = out_dim
@@ -409,10 +409,10 @@ class BaseVision(tf.keras.layers.Layer):
     def build(self, input_shape):
         self.pos_encoder = PositionalEncoding(self.embed_dim, max_len=8*32, drop_rate=self.drop_rate)
         self.transformer_encoder = Sequential([
-            TransformerEncoderLayer(embed_dim=self.embed_dim,
-                                    num_heads=self.num_heads,
-                                    out_dim=self.out_dim,
-                                    drop_rate=self.drop_rate) for i in range(self.num_layers)
+            TransformerEncoder(embed_dim=self.embed_dim,
+                               num_heads=self.num_heads,
+                               out_dim=self.out_dim,
+                               drop_rate=self.drop_rate) for i in range(self.num_layers)
         ])
         self.attention  = PositionAttention(self.max_length, return_weight=False)
         self.get_length = GetTokenLength(self.blank_index)
@@ -456,13 +456,13 @@ class BCNLanguage(tf.keras.layers.Layer):
         self.token_encoder = PositionalEncoding(self.embed_dim, max_len=self.max_length, drop_rate=self.drop_rate)
         self.pos_encoder   = PositionalEncoding(self.embed_dim, max_len=self.max_length, drop_rate=0)
         self.transformer_decoder = [
-            TransformerDecoderLayer(embed_dim=self.embed_dim,
-                                    num_heads=self.num_heads,
-                                    out_dim=self.out_dim,
-                                    activation=self.activation,
-                                    auxiliary_attn=self.auxiliary_attn,
-                                    siamese=False,
-                                    drop_rate=self.drop_rate) for i in range(self.num_layers)
+            TransformerDecoder(embed_dim=self.embed_dim,
+                               num_heads=self.num_heads,
+                               out_dim=self.out_dim,
+                               activation=self.activation,
+                               auxiliary_attn=self.auxiliary_attn,
+                               siamese=False,
+                               drop_rate=self.drop_rate) for i in range(self.num_layers)
         ]
         self.final_dense = Dense(self.num_classes, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
 
