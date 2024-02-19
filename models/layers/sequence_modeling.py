@@ -29,9 +29,9 @@ class BidirectionalLSTM(tf.keras.layers.Layer):
         return x
 
 
-class MBidirectionalLSTM(tf.keras.layers.Layer):
+class CascadeBidirectionalLSTM(tf.keras.layers.Layer):
     def __init__(self, units, num_layer=2, use_dense=True, merge_mode='concat', dropout=0.0, *args, **kwargs):
-        super(MBidirectionalLSTM, self).__init__(*args, **kwargs)
+        super(CascadeBidirectionalLSTM, self).__init__(*args, **kwargs)
         assert merge_mode in ('sum', 'mul', 'concat', 'ave', None)
         self.units      = units
         self.num_layer  = num_layer

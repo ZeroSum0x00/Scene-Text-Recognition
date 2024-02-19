@@ -57,7 +57,7 @@ Model:
         name: ResNet_FeatureExtractor
         num_blocks: [1, 2, 5, 3]
     SequenceLayer:
-        name: MBidirectionalLSTM
+        name: CascadeBidirectionalLSTM
         units: 256
         use_dense: False
         num_layer: 2

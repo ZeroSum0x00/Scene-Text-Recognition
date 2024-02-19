@@ -1,11 +1,9 @@
 Dataset:
-    data_dir: 
-        - '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/SynthText_filename'
-        - '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/MjSynth_filename'
+    data_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/chinese_dataset'
     annotation_dir: null
     data_info:
-        data_type: 'image'
-        character: &char '0123456789abcdefghijklmnopqrstuvwxyz'
+        data_type: 'filename'
+        character: &char './configs/data/china.names'
         max_string_length: &max_length 50
         color_space: 'rgb'
         sensitive: False
@@ -73,7 +71,7 @@ Model:
 Train:
     # mode: 'eager'
     mode: 'graph'
-    save_weight_path: &save_weight './saved_weights2/'
+    save_weight_path: &save_weight './saved_weights/'
     save_weight_type: &save_type 'tf'
     batch_size: 32
     epoch:

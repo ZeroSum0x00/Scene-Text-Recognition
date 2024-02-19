@@ -1,9 +1,9 @@
 Dataset:
-    data_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K'
-    annotation_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K/annotations'
+    data_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/chinese_dataset'
+    annotation_dir: null
     data_info:
-        data_type: 'lmdb'
-        character: &char '0123456789abcdefghijklmnopqrstuvwxyz'
+        data_type: 'filename'
+        character: &char './configs/data/china.names'
         max_string_length: &max_length 50
         color_space: 'rgb'
         sensitive: False
@@ -57,7 +57,7 @@ Model:
         name: VGG_FeatureExtractor
         num_filters: [64, 128, 256, 512]
     SequenceLayer:
-        name: MBidirectionalLSTM
+        name: CascadeBidirectionalLSTM
         units: 256
         use_dense: False
         num_layer: 2

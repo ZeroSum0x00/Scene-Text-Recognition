@@ -47,27 +47,25 @@ Model:
     weight_path: null
     load_weight_type: null
     Architecture:
-        name: ACRNN
+        name: CRNN
     LabelConverter:
-        name: AttnLabelConverter
+        name: CTCLabelConverter
         character: *char
         batch_max_length: *max_length
+        blank_index: -1
     Backbone:
-        name: VGG_FeatureExtractor
-        num_filters: [64, 128, 256, 512]
-    AttentionLayer:
-        name: STRAttention
-        hidden_dim: 256
-        batch_max_length: *max_length
+        name: LCNet
+        num_filters: [32, 64, 128, 256, 512, 1024]
+        expansion: 0.5
+        activation: 'hard-swish'
+        normalizer: 'batch-norm'
     SequenceLayer:
         name: CascadeBidirectionalLSTM
         units: 256
         use_dense: False
         num_layer: 2
     TransformLayer:
-        name: TPS_SpatialTransformerNetwork
-        F: 20
-        
+
 Train:
     mode: 'graph'
     save_weight_path: &save_weight './saved_weights/'
@@ -78,7 +76,7 @@ Train:
         end: 1000
         
 Losses:
-    - AttentionEntropyLoss:
+    - CTCLoss:
         coeff: 1
 
 Optimizer:
@@ -89,9 +87,11 @@ Optimizer:
     global_clipnorm: 5.0
 
 Metrics:
-    - AttentionCharAccuracy:
-    - AttentionWordAccuracy:
-    
+    - CTCCharacterAccuracy:
+        vocabulary: *char
+    - CTCWordAccuracy:
+        vocabulary: *char
+
 Callbacks:
     - MetricHistory:
         save_best: True

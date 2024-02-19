@@ -58,7 +58,7 @@ Model:
         filters: 32
         hidden_dims: 64
     SequenceLayer:
-        name: MBidirectionalLSTM
+        name: CascadeBidirectionalLSTM
         units: 256
         use_dense: False
         num_layer: 2

@@ -57,7 +57,7 @@ Model:
         name: VGG_FeatureExtractor
         num_filters: [64, 128, 256, 512]
     SequenceLayer:
-        name: MBidirectionalLSTM
+        name: CascadeBidirectionalLSTM
         units: 256
         use_dense: False
         num_layer: 2

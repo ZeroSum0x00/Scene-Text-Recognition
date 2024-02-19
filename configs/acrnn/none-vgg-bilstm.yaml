@@ -60,7 +60,7 @@ Model:
         hidden_dim: 512
         batch_max_length: *max_length
     SequenceLayer:
-        name: MBidirectionalLSTM
+        name: CascadeBidirectionalLSTM
         units: 256
         use_dense: False
         num_layer: 2
