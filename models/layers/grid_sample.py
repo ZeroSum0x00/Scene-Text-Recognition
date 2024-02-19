@@ -99,3 +99,14 @@ def grid_sample(input, grid, mode="bilinear", padding_mode="zeros", align_corner
         x = tf.round(x)
         y = tf.round(y)
         return gather(input, y, x, b, h, w, c, padding_mode)
+
+
+def grid_sample_with_mask(input, grid, canvas=None, mode="bilinear", padding_mode="zeros", align_corners=True):
+    output = grid_sample(input, grid=grid, mode=mode, padding_mode=padding_mode, align_corners=align_corners)
+    if canvas is None:
+        return output
+    else:
+        input_mask = tf.ones_like(input)
+        output_mask = grid_sample(input_mask, grid=grid, mode=mode, padding_mode=padding_mode, align_corners=align_corners)
+        output = output * output_mask + canvas * (1 - output_mask)
+        return output

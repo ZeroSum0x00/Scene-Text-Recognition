@@ -29,7 +29,6 @@ def createDataset(lmdb_path, save_path, mode='overwrite'):
                 cv2.imwrite(new_image_path, image)
             else:
                 if not os.path.isfile(new_image_path):
-                    print(new_image_path)
                     cv2.imwrite(new_image_path, image)
 
 if __name__ == "__main__":

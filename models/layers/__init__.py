@@ -10,6 +10,7 @@ from .sequence_modeling import GRU, LSTM, BidirectionalLSTM, MBidirectionalLSTM,
 from .str_attention import STRAttention
 from .label_converter import CTCLabelConverter, OnehotLabelConverter, SparseOnehotLabelConverter, AttnLabelConverter
 from .tps_spatial_transformer import TPS_SpatialTransformerNetwork
+from .tps_spatial_transformer_v2 import TPS_SpatialTransformerNetworkV2
 from .simple_stn import SimpleSpatialTransformer
 from .transformer import (MLPBlock, ExtractPatches, ClassificationToken, CausalMask, ClassToken,
                           DistillationToken, PositionalEmbedding, PositionalIndex,

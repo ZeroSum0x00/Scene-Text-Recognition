@@ -9,7 +9,7 @@ from .layers import (CTCLabelConverter, OnehotLabelConverter, SparseOnehotLabelC
                      TPS_SpatialTransformerNetwork, SimpleSpatialTransformer,
                      STRAttention,
                      GRU, LSTM, BidirectionalLSTM, MBidirectionalLSTM, MDLSTM)
-from .architectures import VGG_FeatureExtractor, GRCNN_FeatureExtractor, ResNet_FeatureExtractor, HRNet_FeatureExtractor, ResNet34
+from .architectures import VGG_FeatureExtractor, GRCNN_FeatureExtractor, ResNet_FeatureExtractor, HRNet_FeatureExtractor, ResNet34, LCNet
 
 
 def build_models(config, weights=None):
@@ -64,6 +64,10 @@ def build_models(config, weights=None):
         transform_layer = getattr(mod, transform_layer_name)(**transform_layer_config)
     else:
         transform_layer = None
+
+    if architecture_name.lower() == 'abinet':
+        architecture_config['num_classes'] = num_class
+        
     architecture_config['transform_net'] = transform_layer
 
     architecture = getattr(mod, architecture_name)(**architecture_config)

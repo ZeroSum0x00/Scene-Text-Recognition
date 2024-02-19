@@ -14,7 +14,7 @@ from tensorflow.keras.regularizers import l2
 from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock
 
 
-class ConvolutionMixer(tf.keras.Model):
+class ConvolutionMixer(tf.keras.layers.Layer):
 
     def __init__(self, filters, kernel_size=(3, 3), groups=8, size=(8, 25), *args, **kwargs):
         super(ConvolutionMixer, self).__init__(*args, **kwargs)
@@ -76,7 +76,7 @@ class ExtractPatches(tf.keras.layers.Layer):
         return x
 
         
-class Attention(tf.keras.Model):
+class Attention(tf.keras.layers.Layer):
 
     def __init__(self, 
                  embed_dim, 
@@ -158,7 +158,7 @@ class Attention(tf.keras.Model):
         return x
 
 
-class SubSample(tf.keras.Model):
+class SubSample(tf.keras.layers.Layer):
     def __init__(self, filters, strides=[2, 1], mode='pool', activation=None, normalizer='layer-norm', *args, **kwargs):
         super(SubSample, self).__init__(*args, **kwargs)
         self.filters = filters

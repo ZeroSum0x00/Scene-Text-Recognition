@@ -89,7 +89,7 @@ class OnehotLabelConverter(object):
         for i, char in enumerate(self.character):
             self.dict[char] = i
 
-        self.N = len(character)
+        self.N = len(self.character)
 
     def encode(self, text):
         length = [len(s) for s in text]
@@ -137,7 +137,7 @@ class SparseOnehotLabelConverter(object):
         for i, char in enumerate(self.character):
             self.dict[char] = i
 
-        self.N = len(character)
+        self.N = len(self.character)
 
     def encode(self, text):
         length = [len(s) for s in text]
