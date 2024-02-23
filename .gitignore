@@ -1,5 +1,5 @@
 # Weights path
-saved_weights
+saved_weights/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
