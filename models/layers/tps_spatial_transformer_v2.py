@@ -3,51 +3,53 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import Dense
+from . import get_activation_from_name, get_normalizer_from_name
+from .grid_sample import grid_sample_with_mask
 
 
 class LocalizationNetwork(tf.keras.Model):
 
-    def __init__(self, num_control_points, control_activation=False, *args, **kwargs):
+    def __init__(self, num_control_points, control_activation=False, activation='relu', normalizer='batch-norm', *args, **kwargs):
         super(LocalizationNetwork, self).__init__(*args, **kwargs)
         self.num_control_points = num_control_points
         self.control_activation = control_activation
-
+        self.activation         = activation
+        self.normalizer         = normalizer
+        
     def build(self, input_shape):
         bs = input_shape[0]
         self.conv = Sequential([
             Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1), padding="SAME"),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
             Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1), padding="SAME"),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
             Conv2D(filters=128, kernel_size=(3, 3), strides=(1, 1), padding="SAME"),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
             Conv2D(filters=256, kernel_size=(3, 3), strides=(1, 1), padding="SAME"),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
             Conv2D(filters=256, kernel_size=(3, 3), strides=(1, 1), padding="SAME"),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
             Conv2D(filters=256, kernel_size=(3, 3), strides=(1, 1), padding="SAME"),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
         ])
 
         self.localization_fc1 = Sequential([
             Dense(units=512),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
         ])
 
         margin = 0.01

@@ -2,8 +2,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Reshape
@@ -11,8 +9,8 @@ from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.layers import concatenate
-from .grid_sample import grid_sample
-from .bilinear_sampler import bilinear_sampler
+from . import get_activation_from_name, get_normalizer_from_name
+from .grid_sample import grid_sample_with_mask
 
 
 class GridGenerator(tf.keras.layers.Layer):
@@ -100,33 +98,35 @@ class GridGenerator(tf.keras.layers.Layer):
 class LocalizationNetwork(tf.keras.layers.Layer):
     """ Localization Network of RARE, which predicts C' (K x 2) from I (I_width x I_height) """
 
-    def __init__(self, F, *args, **kwargs):
+    def __init__(self, F, activation='relu', normalizer='batch-norm', *args, **kwargs):
         super(LocalizationNetwork, self).__init__(*args, **kwargs)
-        self.F = F
+        self.F          = F
+        self.activation = activation
+        self.normalizer = normalizer
 
     def build(self, input_shape):
         bs = input_shape[0]
         self.conv = Sequential([
             Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1), padding="SAME", use_bias=False),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
             Conv2D(filters=128, kernel_size=(3, 3), strides=(1, 1), padding="SAME", use_bias=False),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
             Conv2D(filters=256, kernel_size=(3, 3), strides=(1, 1), padding="SAME", use_bias=False),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
             Conv2D(filters=512, kernel_size=(3, 3), strides=(1, 1), padding="SAME", use_bias=False),
-            BatchNormalization(),
-            Activation('relu'),
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation),
             GlobalAveragePooling2D(),
         ])
         self.localization_fc1 = Sequential([
             Dense(units=256),
-            Activation('relu'),
+            get_activation_from_name(self.activation),
         ])
 
         """ see RARE paper Fig. 6 (a) """
@@ -164,6 +164,5 @@ class TPS_SpatialTransformerNetwork(tf.keras.layers.Layer):
         batch_C_prime = self.localization_network(inputs, training=training)
         build_P_prime = self.grid_generator(batch_C_prime, training=training)
         build_P_prime_reshape = tf.reshape(build_P_prime, shape=[-1, self.I_r_size[0], self.I_r_size[1], 2])
-        batch_I_r = grid_sample(inputs, grid=build_P_prime_reshape, mode="bilinear", padding_mode="border", align_corners=True)
-        # batch_I_r = bilinear_sampler(inputs, build_P_prime_reshape)
+        batch_I_r = grid_sample_with_mask(inputs, grid=build_P_prime_reshape, canvas=None, mode="bilinear", padding_mode="border", align_corners=True)
         return batch_I_r

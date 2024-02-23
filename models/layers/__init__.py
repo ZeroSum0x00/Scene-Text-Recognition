@@ -18,3 +18,6 @@ from .transformer import (MLPBlock, ExtractPatches, ClassificationToken, CausalM
                           PositionalEncodingFourierRot1D, PositionalEncodingFourierRot,
                           MultiHeadRelativePositionalEmbedding, AttentionMLPBlock, EnhanceSelfAttention)
 from .repblock import RepVGGBlock, QARepVGGBlockV1, QARepVGGBlockV2
+from .grid_sample import grid_sample, grid_sample_with_mask
+from .bilinear_sampler import bilinear_sampler
+from .single_stochastic_depth import DropPath

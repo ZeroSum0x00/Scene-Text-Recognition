@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras import Model
 from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
@@ -11,7 +13,7 @@ from tensorflow.keras.layers import concatenate
 from utils.train_processing import losses_prepare
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
-from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock
+from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock, PositionalEmbedding, MLPBlock, DropPath
 
 
 class ConvolutionMixer(tf.keras.layers.Layer):
@@ -203,7 +205,7 @@ class SVTRBlock(tf.keras.Model):
     def __init__(self,
                  mixer_layer,
                  mlp_dim,
-                 activation='Gelu',
+                 activation='gelu',
                  normalizer='layer-norm',
                  proj_drop=0.,
                  drop_path_prob=0.,
@@ -246,7 +248,7 @@ def SVTRNet(num_filters=[64, 128, 256],
             local_kernel=[7, 11],
             qkv_bias=True,
             qk_scale=None,
-            submodule_mode='conv',
+            submodule_mode=True,
             max_length=25,
             include_top=True, 
             weights='imagenet',

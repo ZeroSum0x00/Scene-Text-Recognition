@@ -4,12 +4,13 @@ from .scene_text_recognition import STR
 from .crnn import CRNN
 from .acrnn import ACRNN
 from .abinet import ABINet
-
+from .satrn import SATRN
 from .layers import (CTCLabelConverter, OnehotLabelConverter, SparseOnehotLabelConverter, AttnLabelConverter,
                      TPS_SpatialTransformerNetwork, SimpleSpatialTransformer,
                      STRAttention,
                      GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM)
-from .architectures import VGG_FeatureExtractor, GRCNN_FeatureExtractor, ResNet_FeatureExtractor, HRNet_FeatureExtractor, ResNet34, LCNet
+from .architectures import (ShallowCNN, VGG_FeatureExtractor, GRCNN_FeatureExtractor, ResNet_FeatureExtractor, 
+                            HRNet_FeatureExtractor, ResNet34, LCNet, SVTRNet)
 
 
 def build_models(config, weights=None):

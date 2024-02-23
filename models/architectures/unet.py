@@ -2,16 +2,15 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import SpatialDropout2D
 from tensorflow.keras.layers import add
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
+from models.layers import get_activation_from_name, get_normalizer_from_name
 
 
-def convolution_block(x, filters, kernel_size=3, strides=1, padding="same", use_bias=False):
+def convolution_block(x, filters, kernel_size=3, strides=1, padding="same", use_bias=False, activation='relu', normalizer='batch-norm'):
     if isinstance(filters, int):
         f0 = f1 = filters
     else:
@@ -22,15 +21,15 @@ def convolution_block(x, filters, kernel_size=3, strides=1, padding="same", use_
                strides=strides, 
                padding=padding,
                use_bias=use_bias)(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    x = get_normalizer_from_name(normalizer)(x)
+    x = get_activation_from_name(activation)(x)
     x = Conv2D(filters=f1, 
                kernel_size=kernel_size, 
                strides=strides, 
                padding=padding,
                use_bias=use_bias)(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    x = get_normalizer_from_name(normalizer)(x)
+    x = get_activation_from_name(activation)(x)
     return x
 
 

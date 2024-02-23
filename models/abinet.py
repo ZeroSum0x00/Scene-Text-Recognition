@@ -4,16 +4,14 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.layers import UpSampling2D
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import LayerNormalization
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import concatenate
 from utils.train_processing import losses_prepare
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
+from models.layers import get_activation_from_name, get_normalizer_from_name
 
 
 class GetTokenLength(tf.keras.layers.Layer):
@@ -79,12 +77,12 @@ class MultiHeadAttention(tf.keras.layers.Layer):
     def build(self, input_shape):
         if isinstance(input_shape, (list, tuple)):
             if len(input_shape) == 2:
-                self.query_project  = Dense(self.embed_dim, use_bias=self.q_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
+                self.query_project    = Dense(self.embed_dim, use_bias=self.q_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
                 self.keyvalue_project = Dense(self.embed_dim * 2, use_bias=self.kv_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
             else:
-                self.query_project  = Dense(self.embed_dim, use_bias=self.q_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
-                self.key_project    = Dense(self.embed_dim, use_bias=self.kv_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
-                self.value_project  = Dense(self.embed_dim, use_bias=self.kv_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
+                self.query_project = Dense(self.embed_dim, use_bias=self.q_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
+                self.key_project   = Dense(self.embed_dim, use_bias=self.kv_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
+                self.value_project = Dense(self.embed_dim, use_bias=self.kv_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
         else:
             self.qkv_projection = Dense(self.embed_dim * 3, use_bias=self.q_bias, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
         self.output_dense       = Dense(self.embed_dim, use_bias=True, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
@@ -180,25 +178,27 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             
 class PositionAttention(tf.keras.layers.Layer):
 
-    def __init__(self, max_length, num_channels=64, return_weight=True, *args, **kwargs):
+    def __init__(self, max_length, num_channels=64, return_weight=True, activation='relu', normalizer='batch-norm', *args, **kwargs):
         super(PositionAttention, self).__init__(*args, **kwargs)
-        self.max_length      = max_length
-        self.num_channels     = num_channels
+        self.max_length    = max_length
+        self.num_channels  = num_channels
         self.return_weight = return_weight
+        self.activation    = activation
+        self.normalizer    = normalizer
 
     def _encoder_block(self, filters, kernel_size=(3, 3), strides=(2, 2), padding="SAME"):
         return Sequential([
             Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4)),
-            BatchNormalization(),
-            Activation('relu')
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation)
         ])
 
     def _decoder_block(self, upsamp_size, filters, kernel_size=(3, 3), strides=(1, 1), padding='SAME'):
         return Sequential([
             UpSampling2D(size=upsamp_size, interpolation='nearest'),
             Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4)),
-            BatchNormalization(),
-            Activation('relu')
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name(self.activation)
         ])
 
     def build(self, input_shape):
@@ -258,12 +258,14 @@ class PositionAttention(tf.keras.layers.Layer):
 
 class TransformerEncoder(tf.keras.layers.Layer):
 
-    def __init__(self, embed_dim, num_heads, out_dim=2048, drop_rate=0.1, *args, **kwargs):
+    def __init__(self, embed_dim, num_heads, out_dim=2048, activation='relu', normalizer='layer-norm', drop_rate=0.1, *args, **kwargs):
         super(TransformerEncoder, self).__init__(*args, **kwargs)
-        self.embed_dim     = embed_dim
-        self.num_heads     = num_heads
-        self.out_dim       = out_dim
-        self.drop_rate     = drop_rate
+        self.embed_dim  = embed_dim
+        self.num_heads  = num_heads
+        self.out_dim    = out_dim
+        self.activation = activation
+        self.normalizer = normalizer
+        self.drop_rate  = drop_rate
 
     def build(self, input_shape):
         self.attention = MultiHeadAttention(embed_dim=self.embed_dim,
@@ -275,17 +277,17 @@ class TransformerEncoder(tf.keras.layers.Layer):
         self.dropout1 = Dropout(self.drop_rate)
         self.dropout2 = Dropout(self.drop_rate)
         self.dropout3 = Dropout(self.drop_rate)
-        self.dense1 = Dense(self.out_dim, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
-        self.dense2 = Dense(self.embed_dim, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
-        self.layernorm1 = LayerNormalization()
-        self.layernorm2 = LayerNormalization()
-        self.activ = Activation('relu')
+        self.dense1   = Dense(self.out_dim, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
+        self.dense2   = Dense(self.embed_dim, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
+        self.norm1    = get_normalizer_from_name(self.normalizer)
+        self.norm2    = get_normalizer_from_name(self.normalizer)
+        self.activ    = get_activation_from_name(self.activation)
 
     def call(self, inputs, attn_mask=None, key_padding_mask=None, training=False):
         x, _ = self.attention(inputs, attn_mask, key_padding_mask, training=training)
         x = self.dropout1(x, training=training)
         x = x + inputs
-        x = self.layernorm1(x, training=training)
+        x = self.norm1(x, training=training)
 
         y = self.dense1(x, training=training)
         y = self.activ(y, training=training)
@@ -294,21 +296,22 @@ class TransformerEncoder(tf.keras.layers.Layer):
         y = self.dropout3(y, training=training)
 
         x = x + y
-        x = self.layernorm2(x, training=training)
+        x = self.norm2(x, training=training)
         return x
 
 
 class TransformerDecoder(tf.keras.layers.Layer):
 
-    def __init__(self, embed_dim, num_heads, out_dim=2048, activation="relu", auxiliary_attn=True, siamese=False, drop_rate=0.1, *args, **kwargs):
+    def __init__(self, embed_dim, num_heads, out_dim=2048, auxiliary_attn=True, siamese=False, activation="relu", normalizer='layer-norm', drop_rate=0.1, *args, **kwargs):
         super(TransformerDecoder, self).__init__(*args, **kwargs)
-        self.embed_dim     = embed_dim
-        self.num_heads     = num_heads
-        self.out_dim       = out_dim
-        self.activation    = activation
-        self.auxiliary_attn     = auxiliary_attn
-        self.siamese       = siamese
-        self.drop_rate     = drop_rate
+        self.embed_dim      = embed_dim
+        self.num_heads      = num_heads
+        self.out_dim        = out_dim
+        self.auxiliary_attn = auxiliary_attn
+        self.siamese        = siamese
+        self.activation     = activation
+        self.normalizer     = normalizer
+        self.drop_rate      = drop_rate
 
     def build(self, input_shape):
         if self.auxiliary_attn:
@@ -317,7 +320,7 @@ class TransformerDecoder(tf.keras.layers.Layer):
                                                  zeros_adding=False,
                                                  return_weight=False,
                                                  drop_rate=self.drop_rate)
-            self.norm0 = LayerNormalization()
+            self.norm0    = get_normalizer_from_name(self.normalizer)
             self.dropout0 = Dropout()
 
         self.attention1 = MultiHeadAttention(embed_dim=self.embed_dim,
@@ -327,15 +330,15 @@ class TransformerDecoder(tf.keras.layers.Layer):
                                              drop_rate=self.drop_rate)
 
         self.dropout1 = Dropout(self.drop_rate)
-        self.norm1 = LayerNormalization()
+        self.norm1    = get_normalizer_from_name(self.normalizer)
 
-        self.dense2 = Dense(self.out_dim, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
-        self.activ2 = Activation(self.activation)
+        self.dense2   = Dense(self.out_dim, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
+        self.activ2   = get_activation_from_name(self.activation)
         self.dropout2 = Dropout(self.drop_rate)
 
-        self.dense3 = Dense(self.embed_dim, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
+        self.dense3   = Dense(self.embed_dim, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
         self.dropout3 = Dropout(self.drop_rate)
-        self.norm3 = LayerNormalization()
+        self.norm3    = get_normalizer_from_name(self.normalizer)
 
         if self.siamese:
             self.attention2 = MultiHeadAttention(embed_dim=self.embed_dim,
@@ -394,17 +397,21 @@ class BaseVision(tf.keras.layers.Layer):
                  max_length=25, 
                  num_classes=37, 
                  blank_index=0, 
+                 activation='relu', 
+                 normalizer='layer-norm',
                  drop_rate=0.1, 
                  *args, **kwargs):
         super(BaseVision, self).__init__(*args, **kwargs)
-        self.embed_dim       = embed_dim
-        self.num_heads       = num_heads
-        self.out_dim         = out_dim
-        self.num_layers      = num_layers
-        self.max_length      = max_length + 1
-        self.num_classes     = num_classes
-        self.blank_index     = blank_index
-        self.drop_rate       = drop_rate
+        self.embed_dim   = embed_dim
+        self.num_heads   = num_heads
+        self.out_dim     = out_dim
+        self.num_layers  = num_layers
+        self.max_length  = max_length + 1
+        self.num_classes = num_classes
+        self.blank_index = blank_index
+        self.activation  = activation
+        self.normalizer  = normalizer
+        self.drop_rate   = drop_rate
 
     def build(self, input_shape):
         self.pos_encoder = PositionalEncoding(self.embed_dim, max_len=8*32, drop_rate=self.drop_rate)
@@ -412,9 +419,11 @@ class BaseVision(tf.keras.layers.Layer):
             TransformerEncoder(embed_dim=self.embed_dim,
                                num_heads=self.num_heads,
                                out_dim=self.out_dim,
+                               activation=self.activation, 
+                               normalizer=self.normalizer,
                                drop_rate=self.drop_rate) for i in range(self.num_layers)
         ])
-        self.attention  = PositionAttention(self.max_length, return_weight=False)
+        self.attention  = PositionAttention(self.max_length, return_weight=False, activation=self.activation, normalizer=self.normalizer)
         self.get_length = GetTokenLength(self.blank_index)
         self.cls        = Dense(self.num_classes, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
 
@@ -439,7 +448,7 @@ class BCNLanguage(tf.keras.layers.Layer):
 
     def __init__(self, embed_dim, num_heads, out_dim,
                  num_classes=37, max_length=25, num_layers=4,
-                 auxiliary_attn=False, activation='relu', drop_rate=0.1, *args, **kwargs):
+                 auxiliary_attn=False, activation='relu', normalizer='layer-norm', drop_rate=0.1, *args, **kwargs):
         super(BCNLanguage, self).__init__(*args, **kwargs)
         self.embed_dim      = embed_dim
         self.num_heads      = num_heads
@@ -449,6 +458,7 @@ class BCNLanguage(tf.keras.layers.Layer):
         self.num_layers     = num_layers
         self.auxiliary_attn = auxiliary_attn
         self.activation     = activation
+        self.normalizer     = normalizer
         self.drop_rate      = drop_rate
 
     def build(self, input_shape):
@@ -459,9 +469,10 @@ class BCNLanguage(tf.keras.layers.Layer):
             TransformerDecoder(embed_dim=self.embed_dim,
                                num_heads=self.num_heads,
                                out_dim=self.out_dim,
-                               activation=self.activation,
                                auxiliary_attn=self.auxiliary_attn,
                                siamese=False,
+                               activation=self.activation,
+                               normalizer=self.normalizer,
                                drop_rate=self.drop_rate) for i in range(self.num_layers)
         ]
         self.final_dense = Dense(self.num_classes, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))
@@ -562,7 +573,9 @@ class ABINet(tf.keras.Model):
                                  self.max_length, 
                                  self.num_classes, 
                                  self.blank_index, 
-                                 self.drop_rate)
+                                 activation='relu',
+                                 normalizer='layer-norm',
+                                 drop_rate=self.drop_rate)
         self.language = BCNLanguage(self.embed_dim, 
                                     self.num_heads, 
                                     self.out_dim, 
@@ -571,6 +584,7 @@ class ABINet(tf.keras.Model):
                                     num_layers=self.decoder_layers, 
                                     auxiliary_attn=False, 
                                     activation='gelu', 
+                                    normalizer='layer-norm',
                                     drop_rate=self.drop_rate)
         self.alignment = BaseAlignment(self.embed_dim, self.num_classes, self.blank_index)
 

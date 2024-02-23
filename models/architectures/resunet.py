@@ -2,36 +2,35 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import SpatialDropout2D
 from tensorflow.keras.layers import add
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
+from models.layers import get_activation_from_name, get_normalizer_from_name
 
 
-def residual_block(inputs, filters, kernel_size=3, strides=1, padding="SAME"):
-    x = BatchNormalization()(inputs)
-    x = Activation('relu')(x)
+def residual_block(inputs, filters, kernel_size=3, strides=1, padding="SAME", activation='relu', normalizer='batch-norm'):
+    x = get_normalizer_from_name(normalizer)(inputs)
+    x = get_activation_from_name(activation)(x)
     x = Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding)(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    x = get_normalizer_from_name(normalizer)(x)
+    x = get_activation_from_name(activation)(x)
     x = Conv2D(filters=filters, kernel_size=kernel_size, strides=(1, 1), padding=padding)(x)
 
     y = Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding)(inputs)
-    y = BatchNormalization()(y)
+    y = get_normalizer_from_name(normalizer)(y)
     return add([x, y])
 
 
-def ResUnet_FeatureExtractor(num_filters, out_dims, input_shape=(32, 400, 3)):
+def ResUnet_FeatureExtractor(num_filters, out_dims, input_shape=(32, 400, 3), activation='relu', normalizer='batch-norm'):
     f0, f1, f2, f3 = num_filters
     img_input = Input(shape=input_shape)
     
     x11 = Sequential([
         Conv2D(filters=f0, kernel_size=(3, 3), strides=(1, 1), padding="SAME"),
-        BatchNormalization(),
-        Activation('relu'),
+        get_normalizer_from_name(normalizer),
+        get_activation_from_name(activation),
         Conv2D(filters=f0, kernel_size=(3, 3), strides=(1, 1), padding="SAME")
     ])(img_input)
     x12 = Conv2D(filters=f0, kernel_size=(3, 3), strides=(1, 1), padding="SAME")(img_input)
@@ -62,6 +61,6 @@ def ResUnet_FeatureExtractor(num_filters, out_dims, input_shape=(32, 400, 3)):
                kernel_size=(1, 1), 
                strides=(1, 1), 
                padding='valid')(x10)
-    x = Activation('sigmoid')(x)
+    x = get_activation_from_name('sigmoid')(x)
     model = Model(inputs=img_input, outputs=x, name='NestedUNet')
     return model

@@ -2,38 +2,39 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import SpatialDropout2D
 from tensorflow.keras.layers import add
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
+from models.layers import get_activation_from_name, get_normalizer_from_name
 from .unet import convolution_block
 
 
 class AttentionBlock(tf.keras.layers.Layer):
     """ Rectification Network of RARE, namely TPS based STN """
 
-    def __init__(self, filters, *args, **kwargs):
+    def __init__(self, filters, activation='relu', normalizer='batch-norm', *args, **kwargs):
         super(AttentionBlock, self).__init__(*args, **kwargs)
-        self.filters = filters
-
+        self.filters    = filters
+        self.activation = activation
+        self.normalizer = normalizer
+        
     def build(self, input_shape):
         self.W_gate = Sequential([
             Conv2D(filters=self.filters, kernel_size=(1, 1), strides=(1, 1), padding="VALID"),
-            BatchNormalization()
+            get_normalizer_from_name(self.normalizer),
         ])
         self.W_x = Sequential([
             Conv2D(filters=self.filters, kernel_size=(1, 1), strides=(1, 1), padding="VALID"),
-            BatchNormalization()
+            get_normalizer_from_name(self.normalizer),
         ])
         self.psi = Sequential([
             Conv2D(filters=1, kernel_size=(1, 1), strides=(1, 1), padding="VALID"),
-            BatchNormalization(),
-            Activation('sigmoid')
+            get_normalizer_from_name(self.normalizer),
+            get_activation_from_name('sigmoid')
         ])
-        self.activ = Activation('relu')
+        self.activ = get_activation_from_name(self.activation)
 
     def call(self, inputs, training=False):
         gate, skip_connection = inputs
@@ -45,11 +46,11 @@ class AttentionBlock(tf.keras.layers.Layer):
         return x
 
         
-def upsample_block(inputs, filters):
+def upsample_block(inputs, filters, activation='relu', normalizer='batch-norm'):
     x = UpSampling2D(size=(2, 2))(inputs)
     x = Conv2D(filters=filters, kernel_size=(3, 3), strides=(1, 1), padding='SAME', use_bias=True)(x)
-    x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    x = get_normalizer_from_name(normalizer)(x)
+    x = get_activation_from_name(activation)(x)
     return x
 
 
