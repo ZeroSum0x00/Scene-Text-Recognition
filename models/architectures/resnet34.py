@@ -8,7 +8,6 @@ from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
-from models.layers import PositionalEncoding, TransformerEncoderLayer
 
 
 def BasicBlock(input_tensor, filters, kernel_size=3, strides=(1, 1), downsaple=False):
@@ -58,39 +57,3 @@ def ResNet34(num_blocks, input_shape=(32, 128, 3)):
         x = BasicBlock(x, 512, 3, 1, downsaple)
     model = Model(img_input, x)
     return model
-
-
-# class ResTranformer(tf.keras.Model):
-
-#     def __init__(self, num_blocks, embed_dim, num_heads, out_dim=2048, num_layers=3, drop_rate=0.1, *args, **kwargs):
-#         super(ResTranformer, self).__init__(*args, **kwargs)
-#         self.num_blocks    = num_blocks
-#         self.embed_dim     = embed_dim
-#         self.num_heads     = num_heads
-#         self.out_dim       = out_dim
-#         self.num_layers    = num_layers
-#         self.drop_rate     = drop_rate
-        
-#     def build(self, input_shape):
-#         self.backbone = CustomResNet(num_blocks=self.num_blocks, input_shape=input_shape[1:])
-#         self.pos_encoder = PositionalEncoding(self.embed_dim, max_len=8*32, drop_rate=self.drop_rate)
-#         self.transformer_encoder = Sequential([
-#             TransformerEncoderLayer(embed_dim=self.embed_dim,
-#                                     num_heads=self.num_heads,
-#                                     out_dim=self.out_dim,
-#                                     drop_rate=self.drop_rate) for i in range(self.num_layers)
-#         ])
-
-#     def call(self, inputs, training=False):
-#         x = self.backbone(inputs, training=training)
-#         h = tf.shape(x)[1]
-#         w = tf.shape(x)[2]
-#         c = tf.shape(x)[-1]
-
-#         x = tf.reshape(x, [-1, h*w, c])
-#         x = tf.transpose(x, [1, 0, 2])
-#         x = self.pos_encoder(x, training=training)
-#         x = self.transformer_encoder(x, training=training)
-#         x = tf.transpose(x, [1, 0, 2])
-#         x = tf.reshape(x, [-1, h, w, c])
-#         return x

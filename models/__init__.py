@@ -8,7 +8,7 @@ from .abinet import ABINet
 from .layers import (CTCLabelConverter, OnehotLabelConverter, SparseOnehotLabelConverter, AttnLabelConverter,
                      TPS_SpatialTransformerNetwork, SimpleSpatialTransformer,
                      STRAttention,
-                     GRU, LSTM, BidirectionalLSTM, MBidirectionalLSTM, MDLSTM)
+                     GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM)
 from .architectures import VGG_FeatureExtractor, GRCNN_FeatureExtractor, ResNet_FeatureExtractor, HRNet_FeatureExtractor, ResNet34, LCNet
 
 
