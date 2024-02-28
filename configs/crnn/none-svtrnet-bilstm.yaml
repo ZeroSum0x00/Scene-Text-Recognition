@@ -1,0 +1,142 @@
+Dataset:
+    data_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K'
+    annotation_dir: null
+    data_info:
+        data_type: 'filename'
+        character: &char './configs/data/china.names'
+        max_string_length: &max_length 50
+        color_space: 'rgb'
+        sensitive: False
+        check_data: False
+        load_memory: False
+    data_normalizer:
+        norm_type: 'sub_divide'
+        norm_mean: null
+        norm_std: null
+        norm_resize_with_pad: False
+    data_augmentation:
+        train:
+            # - RandomRotate:
+            #     angle_range: 15
+            #     padding_color: 255
+            #     keep_shape: False
+            # - RandomGaussianBlur:
+            #     sigma_range: [0.4, 0.8]
+            # - RandomBrightness:
+            #     delta_range: 150
+            # - RandomErodeDilate:
+            #     kernel_size: [3, 3]
+            # - RandomSaltAndPepper:
+            #     ratio_range: 0.3
+            #     phi_range: 0.1
+            # - RandomSharpen:
+            #     lightness_range: [0.75, 2.0]
+            #     alpha_range: 0.1
+        valid:
+            # - RandomRotate:
+            #     angle_range: 15
+            #     padding_color: 255
+            #     keep_shape: False
+            # - RandomBrightness:
+            #     delta_range: 100
+        test:
+    data_loader_mode: 0
+
+Model:
+    input_shape: [32, 200, 3]
+    weight_path: null
+    load_weight_type: null
+    Architecture:
+        name: CRNN
+    LabelConverter:
+        name: CTCLabelConverter
+        character: *char
+        batch_max_length: *max_length
+        blank_index: -1
+    Backbone:
+        name: SVTRNet
+        num_filters: [64, 128, 256]
+        num_blocks: [3, 6, 3]
+        num_heads: [2, 4, 8]
+        patch_size: [4, 4]
+        mlp_ratio: 4
+        mixer: ['Local'] * 6 + ['Global'] * 6
+        local_kernel: [7, 11]
+        qkv_bias: True
+        qk_scale: null
+        submodule_mode: True
+        max_length: 25
+        include_top: True
+        weights: 'imagenet'
+        input_tensor: null 
+        input_shape: null
+        pooling: null
+        use_prenorm: False
+        activation: 'gelu'
+        normalizer: 'layer-norm'
+        final_activation: "hard-swish"
+        attn_drop: 0. 
+        proj_drop: 0.
+        drop_path_rate: 0.1
+        final_drop: 0.1
+    SequenceLayer:
+        name: CascadeBidirectionalLSTM
+        units: 256
+        use_dense: False
+        num_layer: 2
+    TransformLayer:
+
+Train:
+    mode: 'graph'
+    save_weight_path: &save_weight './saved_weights/'
+    save_weight_type: &save_type 'tf'
+    batch_size: 64
+    epoch:
+        start: 0
+        end: 1000
+        
+Losses:
+    - CTCLoss:
+        coeff: 1
+
+Optimizer:
+    name: Adam
+    beta_1: 0.9
+    beta_2: 0.999
+    learning_rate: 0.0001
+    global_clipnorm: 5.0
+
+Metrics:
+    - CTCCharacterAccuracy:
+        vocabulary: *char
+    - CTCWordAccuracy:
+        vocabulary: *char
+
+Callbacks:
+    - MetricHistory:
+        save_best: True
+        save_format: *save_type
+    - LossHistory:
+        save_best: False
+        save_format: *save_type
+    - ModelCheckpoint:
+        extend_path: 'weights/checkpoint_{epoch:04d}/saved_str_weights'
+        monitor: 'val_loss'
+        save_weights_only: True
+        save_freq: 'epoch'
+        period: 100
+        verbose: 1
+    - TensorBoard:
+        extend_path: 'logs'
+        update_freq: 1
+    - CSVLogger:
+        extend_path: 'summary/train_history.csv'
+        separator: ","
+        append: True
+    - TrainLogger:
+        extend_path: 'logs/training_log.log'
+    - TrainSummary:
+        extend_path: 'summary/train_summary.txt'
+
+Test:
+    data: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K/test'

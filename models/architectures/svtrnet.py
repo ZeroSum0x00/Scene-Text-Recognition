@@ -42,12 +42,14 @@ class ConvolutionMixer(tf.keras.layers.Layer):
 
 class ExtractPatches(tf.keras.layers.Layer):
 
-    def __init__(self, embed_dim, patch_size=[4, 4], iter=2,  mode='pope', *args, **kwargs):
+    def __init__(self, embed_dim, patch_size=[4, 4], iter=2,  mode='pope', activation='gelu', normalizer='batch-norm', *args, **kwargs):
         super(ExtractPatches, self).__init__(*args, **kwargs)
-        self.embed_dim = embed_dim
+        self.embed_dim  = embed_dim
         self.patch_size = patch_size if isinstance(patch_size, (list, tuple)) else (patch_size, patch_size)
-        self.iter = iter
-        self.mode = mode
+        self.iter       = iter
+        self.mode       = mode
+        self.activation = activation
+        self.normalizer = normalizer
 
     def build(self, input_shape):
         if self.mode == 'pope':
@@ -58,8 +60,8 @@ class ExtractPatches(tf.keras.layers.Layer):
                                  padding='SAME',
                                  groups=1,
                                  use_bias=False,
-                                 activation="gelu",
-                                 normalizer='batch-norm') for i in range(self.iter)
+                                 activation=self.activation,
+                                 normalizer=self.normalizer) for i in range(self.iter)
             ])
             self.num_patches = (input_shape[1] // (2 ** self.iter)) * (input_shape[2] // (2 ** self.iter))
 
@@ -205,6 +207,7 @@ class SVTRBlock(tf.keras.Model):
     def __init__(self,
                  mixer_layer,
                  mlp_dim,
+                 use_prenorm=False,
                  activation='gelu',
                  normalizer='layer-norm',
                  proj_drop=0.,
@@ -213,6 +216,7 @@ class SVTRBlock(tf.keras.Model):
         super(SVTRBlock, self).__init__(*args, **kwargs)
         self.mixer_layer    = mixer_layer
         self.mlp_dim        = mlp_dim
+        self.use_prenorm    = use_prenorm
         self.activation     = activation
         self.normalizer     = normalizer
         self.proj_drop      = proj_drop
@@ -228,14 +232,24 @@ class SVTRBlock(tf.keras.Model):
         self.drop_path = DropPath(self.drop_path_prob if self.drop_path_prob > 0. else 0.)
 
     def call(self, inputs, training=False):
-        x = self.mixer_layer(inputs, training=training)
-        x = self.drop_path(x, training=training)
-        x += inputs
-        x1 = self.norm_layer1(x, training=training)
-        x1 = self.mlp_block(x1, training=training)
-        x1 = self.drop_path(x1, training=training)
-        x += x1
-        x = self.norm_layer2(x, training=training)
+        if self.use_prenorm:
+            x = self.mixer_layer(inputs, training=training)
+            x = self.drop_path(x, training=training)
+            x += inputs
+            x = self.norm_layer1(x, training=training)
+            x1 = self.mlp_block(x, training=training)
+            x1 = self.drop_path(x1, training=training)
+            x += x1
+            x = self.norm_layer2(x, training=training)
+        else:
+            x = self.norm_layer1(inputs, training=training)
+            x = self.mixer_layer(x, training=training)
+            x = self.drop_path(x, training=training)
+            x += inputs
+            x1 = self.norm_layer2(x, training=training)
+            x1 = self.mlp_block(x1, training=training)
+            x1 = self.drop_path(x1, training=training)
+            x += x1
         return x
 
 
@@ -255,7 +269,10 @@ def SVTRNet(num_filters=[64, 128, 256],
             input_tensor=None, 
             input_shape=None,
             pooling=None,
-            final_activation="softmax",
+            use_prenorm=False,
+            activation='gelu',
+            normalizer='layer-norm',
+            final_activation="hard-swish",
             classes=1000,
             attn_drop=0., 
             proj_drop=0.,
@@ -271,7 +288,9 @@ def SVTRNet(num_filters=[64, 128, 256],
     x = ExtractPatches(embed_dim=f0, 
                        patch_size=patch_size, 
                        iter=2, 
-                       mode='pope')(img_input)
+                       mode='pope',
+                       activation=activation,
+                       normalizer='batch-norm')(img_input)
     x = PositionalEmbedding()(x)
     x = Dropout(proj_drop)(x)
 
@@ -289,8 +308,9 @@ def SVTRNet(num_filters=[64, 128, 256],
         mlp_dim = f0 * mlp_ratio
         x = SVTRBlock(mixer_layer, 
                       mlp_dim, 
-                      activation='gelu',
-                      normalizer='layer-norm',
+                      use_prenorm=use_prenorm,
+                      activation=activation,
+                      normalizer=normalizer,
                       proj_drop=proj_drop,
                       drop_path_prob=drop_rate)(x)
 
@@ -299,7 +319,7 @@ def SVTRNet(num_filters=[64, 128, 256],
         x = SubSample(f1, 
                       strides=[2, 1],
                       mode=submodule_mode, 
-                      normalizer='layer-norm')(x)
+                      normalizer=normalizer)(x)
         size[0] = size[0] // 2
     
     for i in range(n1):
@@ -314,8 +334,9 @@ def SVTRNet(num_filters=[64, 128, 256],
         mlp_dim = f1 * mlp_ratio
         x = SVTRBlock(mixer_layer, 
                       mlp_dim, 
-                      activation='gelu',
-                      normalizer='layer-norm',
+                      use_prenorm=use_prenorm,
+                      activation=activation,
+                      normalizer=normalizer,
                       proj_drop=proj_drop,
                       drop_path_prob=drop_rate)(x)
 
@@ -324,7 +345,7 @@ def SVTRNet(num_filters=[64, 128, 256],
         x = SubSample(f2, 
                       strides=[2, 1],
                       mode=submodule_mode, 
-                      normalizer='layer-norm')(x)
+                      normalizer=normalizer)(x)
         size[0] = size[0] // 2
 
     for i in range(n2):
@@ -339,10 +360,15 @@ def SVTRNet(num_filters=[64, 128, 256],
         mlp_dim = f2 * mlp_ratio
         x = SVTRBlock(mixer_layer, 
                       mlp_dim, 
-                      activation='gelu',
-                      normalizer='layer-norm',
+                      use_prenorm=use_prenorm,
+                      activation=activation,
+                      normalizer=normalizer,
                       proj_drop=proj_drop,
                       drop_path_prob=drop_rate)(x)
+
+    if not use_prenorm:
+        x = get_normalizer_from_name(normalizer)(x)
+        
     if include_top:
         x = tf.reshape(x, shape=[-1, size[0], size[1], f2])
         x = AveragePooling2D((size[0], int(size[1] // max_length) if size[1] > max_length else 1))(x)
@@ -351,7 +377,7 @@ def SVTRNet(num_filters=[64, 128, 256],
                    strides=(1, 1),
                    padding="VALID",
                    use_bias=False)(x)
-        x = get_activation_from_name('hard-swish')(x)
+        x = get_activation_from_name(final_activation)(x)
         x = Dropout(final_drop)(x)
 
     model = Model(img_input, x)

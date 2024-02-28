@@ -1,0 +1,129 @@
+Dataset:
+    data_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K'
+    annotation_dir: null
+    data_info:
+        data_type: 'lmdb'
+        character: &char '0123456789abcdefghijklmnopqrstuvwxyz'
+        max_string_length: &max_length 50
+        color_space: 'rgb'
+        sensitive: False
+        check_data: False
+        load_memory: False
+    data_normalizer:
+        norm_type: 'sub_divide'
+        norm_mean: null
+        norm_std: null
+        norm_resize_with_pad: False
+    data_augmentation:
+        train:
+            # - RandomRotate:
+            #     angle_range: 15
+            #     padding_color: 255
+            #     keep_shape: False
+            # - RandomGaussianBlur:
+            #     sigma_range: [0.4, 0.8]
+            # - RandomBrightness:
+            #     delta_range: 150
+            # - RandomErodeDilate:
+            #     kernel_size: [3, 3]
+            # - RandomSaltAndPepper:
+            #     phi_range: 0.1
+            # - RandomSharpen:
+            #     lightness_range: [0.75, 2.0]
+            #     alpha_range: 0.1
+        valid:
+            # - RandomRotate:
+            #     angle_range: 15
+            #     padding_color: 255
+            #     keep_shape: False
+            # - RandomBrightness:
+            #     delta_range: 100
+        test:
+    data_loader_mode: 0
+
+Model:
+    input_shape: [32, 200, 3]
+    weight_path: null
+    load_weight_type: null
+    Architecture:
+        name: CRNN
+    LabelConverter:
+        name: CTCLabelConverter
+        character: *char
+        batch_max_length: *max_length
+        blank_index: -1
+    Backbone:
+        name: VGG_FeatureExtractor
+        num_filters: [64, 128, 256, 512]
+    SequenceLayer:
+        name: CascadeBidirectionalLSTM
+        units: 256
+        use_dense: False
+        num_layer: 2
+    TransformLayer:
+        name: TPS_SpatialTransformerNetworkV2
+        grid_size: [32, 64]
+        num_control_points: 40
+        margins: [0.05, 0.05]
+
+Train:
+    mode: 'graph'
+    save_weight_path: &save_weight './saved_weights/'
+    save_weight_type: &save_type 'tf'
+    batch_size: 64
+    epoch:
+        start: 0
+        end: &end_epoch 1000
+        
+Losses:
+    - CTCLoss:
+        coeff: 1
+
+Optimizer:
+    name: Adam
+    beta_1: 0.9
+    beta_2: 0.999
+    learning_rate: 0.0001
+    global_clipnorm: 5.0
+
+Metrics:
+    - CTCCharacterAccuracy:
+        vocabulary: *char
+    - CTCWordAccuracy:
+        vocabulary: *char
+
+Callbacks:
+    # - AdvanceWarmUpLearningRate:
+    #     lr_init: *lr
+    #     lr_end: 0.00001
+    #     epochs: *end_epoch
+    #     warmup_epoch_ratio: 0.05 
+    #     warmup_lr_ratio: 0.001
+    #     no_aug_epoch_ratio: 0.05
+    - MetricHistory:
+        save_best: True
+        save_format: *save_type
+    - LossHistory:
+        save_best: False
+        save_format: *save_type
+    - ModelCheckpoint:
+        extend_path: 'weights/checkpoint_{epoch:04d}/saved_str_weights'
+        monitor: 'val_loss'
+        save_weights_only: True
+        save_freq: 'epoch'
+        period: 100
+        verbose: 1
+    - TensorBoard:
+        extend_path: 'logs'
+        update_freq: 1
+    - CSVLogger:
+        extend_path: 'summary/train_history.csv'
+        separator: ","
+        append: True
+    - TrainLogger:
+        extend_path: 'logs/training_log.log'
+    - TrainSummary:
+        extend_path: 'summary/train_summary.txt'
+
+Test:
+    data: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K/test'

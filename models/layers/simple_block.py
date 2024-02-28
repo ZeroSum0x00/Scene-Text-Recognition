@@ -1,5 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.initializers import RandomNormal
+from tensorflow.keras.regularizers import l2
 from . import get_activation_from_name, get_normalizer_from_name
 
 
@@ -30,7 +32,9 @@ class ConvolutionBlock(tf.keras.layers.Layer):
                            strides=self.strides,
                            padding=self.padding,
                            groups=self.groups,
-                           use_bias=self.use_bias)
+                           use_bias=self.use_bias,
+                           kernel_initializer=RandomNormal(stddev=0.02), 
+                           kernel_regularizer=l2(5e-4))
 
         if self.normalizer:
             self.norm = get_normalizer_from_name(self.normalizer)

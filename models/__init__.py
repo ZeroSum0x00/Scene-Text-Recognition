@@ -6,7 +6,7 @@ from .acrnn import ACRNN
 from .abinet import ABINet
 from .satrn import SATRN
 from .layers import (CTCLabelConverter, OnehotLabelConverter, SparseOnehotLabelConverter, AttnLabelConverter,
-                     TPS_SpatialTransformerNetwork, SimpleSpatialTransformer,
+                     TPS_SpatialTransformerNetwork, TPS_SpatialTransformerNetworkV2, SimpleSpatialTransformer,
                      STRAttention,
                      GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM)
 from .architectures import (ShallowCNN, VGG_FeatureExtractor, GRCNN_FeatureExtractor, ResNet_FeatureExtractor, 

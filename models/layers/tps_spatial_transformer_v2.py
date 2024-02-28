@@ -19,7 +19,6 @@ class LocalizationNetwork(tf.keras.Model):
         self.normalizer         = normalizer
         
     def build(self, input_shape):
-        bs = input_shape[0]
         self.conv = Sequential([
             Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1), padding="SAME"),
             get_normalizer_from_name(self.normalizer),
@@ -56,7 +55,7 @@ class LocalizationNetwork(tf.keras.Model):
         sampling_num_per_side = int(self.num_control_points / 2)
         ctrl_pts_x = np.linspace(margin, 1. - margin, sampling_num_per_side)
         ctrl_pts_y_top = np.ones(sampling_num_per_side) * margin
-        ctrl_pts_y_bottom = np.ones(sampling_num_per_side) * (1-margin)
+        ctrl_pts_y_bottom = np.ones(sampling_num_per_side) * (1 - margin)
         ctrl_pts_top = np.stack([ctrl_pts_x, ctrl_pts_y_top], axis=1)
         ctrl_pts_bottom = np.stack([ctrl_pts_x, ctrl_pts_y_bottom], axis=1)
         ctrl_points = np.concatenate([ctrl_pts_top, ctrl_pts_bottom], axis=0).astype(np.float32)
@@ -165,18 +164,18 @@ class TPS_SpatialTransformerNetworkV2(tf.keras.layers.Layer):
         return repr_matrix
 
     def call(self, inputs, training=False):
-        stn_input = tf.image.resize(inputs, size=self.grid_size, method=tf.image.ResizeMethod.BILINEAR)
+        stn_input = tf.image.resize(inputs, size=self.grid_size, method=tf.image.ResizeMethod.BILINEAR, antialias=True)
         source_control_points = self.localization_network(stn_input, training=training)
         bs = tf.shape(inputs)[0]
         h  = tf.shape(inputs)[1]
         w  = tf.shape(inputs)[2]
-        self.padding_matrix = tf.repeat(self.padding_matrix, bs, axis=0)
-        Y = tf.concat([source_control_points, self.padding_matrix], axis=1)
+        padding_value = tf.repeat(self.padding_matrix, bs, axis=0)
+        Y = tf.concat([source_control_points, padding_value], axis=1)
         mapping_matrix = tf.matmul(self.inverse_kernel, Y)
         source_coordinate = tf.matmul(self.target_coordinate_repr, mapping_matrix)
         grid = tf.reshape(source_coordinate, shape=[bs, h, w, -1])
         grid = tf.clip_by_value(grid, clip_value_min=0, clip_value_max=1)
         # the input to grid_sample is normalized [-1, 1], but what we get is [0, 1]
         grid = 2.0 * grid - 1.0
-        output_maps = grid_sample_with_mask(inputs, grid=grid, canvas=None, mode="bilinear", padding_mode="border", align_corners=True)
+        output_maps = grid_sample_with_mask(inputs, grid=grid, canvas=None, mode="bilinear", padding_mode="zeros", align_corners=True)
         return output_maps
