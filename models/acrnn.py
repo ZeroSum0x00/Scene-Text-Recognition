@@ -17,8 +17,9 @@ class ACRNN(tf.keras.Model):
         self.max_length = attention_net.batch_max_length if attention_net is not None else 2
 
     def build(self, input_shape):
-        reduce_lenght         = self.backbone.output.shape[1]
-        self.map_to_sequence  = AveragePooling2D((reduce_lenght, 1))
+        if not isinstance(self.sequence_net, ConvolutionHead):
+            reduce_lenght         = self.backbone.output.shape[1]
+            self.map_to_sequence  = AveragePooling2D((reduce_lenght, 1))
         self.final_activation = Softmax(axis=-1)
         
     def call(self, inputs, training=False):
@@ -31,8 +32,10 @@ class ACRNN(tf.keras.Model):
             x = self.transform_net(x, training=training)
 
         x = self.backbone(x, training=training)
-        x = self.map_to_sequence(x)
-        x = tf.squeeze(x, axis=1)
+        
+        if hasattr(self, 'map_to_sequence'):
+            x = self.map_to_sequence(x)
+            x = tf.squeeze(x, axis=1)
 
         if self.sequence_net is not None:
             x = self.sequence_net(x, training=training)

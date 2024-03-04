@@ -39,6 +39,8 @@ def build_models(config, weights=None):
         if 'SequenceLayer' in config and config['SequenceLayer']:
             sequen_layer_config = config['SequenceLayer']
             sequen_layer_name = sequen_layer_config.pop("name")
+            if sequen_layer_name == "ConvolutionHead":
+                sequen_layer_config['num_classes'] = num_class
             sequen_layer = getattr(mod, sequen_layer_name)(**sequen_layer_config)
         else:
             sequen_layer = None
