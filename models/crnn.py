@@ -4,6 +4,7 @@ from tensorflow.keras.layers import Reshape
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Softmax
 from tensorflow.keras.layers import AveragePooling2D
+from models.layers import ConvolutionHead
 from utils.train_processing import losses_prepare
 
 
@@ -16,23 +17,29 @@ class CRNN(tf.keras.Model):
         self.num_classes   = num_classes
         
     def build(self, input_shape):
-        reduce_lenght         = self.backbone.output.shape[1]
-        self.map_to_sequence  = AveragePooling2D((reduce_lenght, 1))
-        self.predictor        = Dense(units=self.num_classes)
+        if not isinstance(self.sequence_net, ConvolutionHead):
+            reduce_lenght         = self.backbone.output.shape[1]
+            self.map_to_sequence  = AveragePooling2D((reduce_lenght, 1))
+            self.predictor        = Dense(units=self.num_classes)
+
         self.final_activation = Softmax(axis=-1)
-        
+
     def call(self, inputs, training=False):
         if self.transform_net is not None:
             inputs = self.transform_net(inputs, training=training)
             
         x = self.backbone(inputs, training=training)
-        x = self.map_to_sequence(x)
-        x = tf.squeeze(x, axis=1)
-        
+
+        if hasattr(self, 'map_to_sequence'):
+            x = self.map_to_sequence(x)
+            x = tf.squeeze(x, axis=1)
+
         if self.sequence_net is not None:
             x = self.sequence_net(x, training=training)
             
-        x = self.predictor(x, training=training)
+        if hasattr(self, 'predictor'):
+            x = self.predictor(x, training=training)
+            
         x = self.final_activation(x)
         return x
 

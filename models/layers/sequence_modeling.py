@@ -78,3 +78,22 @@ class MDLSTM(tf.keras.layers.Layer):
         if hasattr(self, 'linear'):
             x = self.linear(x, training=training)
         return x
+
+
+class ConvolutionHead(tf.keras.Model):
+    def __init__(self, hidden_dim, num_classes=1000, activation='relu', normalizer='batch-norm', *args, **kwargs):
+        super(ConvolutionHead, self).__init__(*args, **kwargs)
+        self.hidden_dim  = hidden_dim
+        self.num_classes = num_classes
+        self.activation  = activation
+        self.normalizer  = normalizer
+
+    def build(self, input_shape):
+        self.block = Sequential([
+            ConvolutionBlock(self.hidden_dim, 1, activation=self.activation, normalizer=self.normalizer),
+            ConvolutionBlock(self.num_classes, 1, activation=None, normalizer=None)
+        ])
+
+    def call(self, inputs, training=False):
+        x = self.block(inputs, training=training)
+        return x

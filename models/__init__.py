@@ -8,7 +8,7 @@ from .satrn import SATRN
 from .layers import (CTCLabelConverter, OnehotLabelConverter, SparseOnehotLabelConverter, AttnLabelConverter,
                      TPS_SpatialTransformerNetwork, TPS_SpatialTransformerNetworkV2, SimpleSpatialTransformer,
                      STRAttention,
-                     GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM)
+                     GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM, ConvolutionHead)
 from .architectures import (ShallowCNN, VGG_FeatureExtractor, GRCNN_FeatureExtractor, ResNet_FeatureExtractor, 
                             HRNet_FeatureExtractor, ResNet34, LCNet, SVTRNet)
 
