@@ -42,7 +42,6 @@ class ConvolutionBlock(tf.keras.layers.Layer):
         if self.activation:
             self.activ = get_activation_from_name(self.activation)
 
-
     def call(self, inputs, training=False):
         x = self.conv(inputs, training=training)
         if hasattr(self, 'norm'):

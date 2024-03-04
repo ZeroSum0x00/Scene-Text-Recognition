@@ -1,72 +1,102 @@
 import os
-import cv2
-from tqdm import tqdm
+import numpy as np
+import tensorflow as tf
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
 
-
-class ParseTXT:
+class WarmUpLearningRate(tf.keras.callbacks.Callback):
     def __init__(self, 
-                 data_dir,
-                 annotation_file,
-                 character,
-                 max_string_length,
-                 sensitive,
-                 load_memory,
-                 check_data):
-        self.data_dir          = data_dir
-        self.annotation_path   = annotation_file
-        txt_file = open(annotation_file, "r")
-        self.raw_data = txt_file.readlines()
-        txt_file.close()
+                 steps_per_epoch, 
+                 epochs,
+                 lr_init, 
+                 lr_end,
+                 warmup_epochs):
+        self.global_steps = tf.Variable(1, trainable=False, dtype=tf.int64)
+        self.warmup_steps = warmup_epochs * steps_per_epoch
+        self.total_steps = epochs * steps_per_epoch
+        self.lr_init = lr_init
+        self.lr_end = lr_end
 
-        self.character         = character
-        self.max_string_length = max_string_length
-        self.sensitive         = sensitive
-        self.load_memory       = load_memory
-        self.check_data        = check_data
+    def on_train_batch_end(self, batch, logs=None):
+        self.global_steps.assign_add(1)
+        if self.global_steps < self.warmup_steps:
+            lr = self.global_steps / self.warmup_steps * self.lr_init
+        else:
+            lr = self.lr_end + 0.5 * (self.lr_init - self.lr_end)*((1 + tf.cos((self.global_steps - self.warmup_steps) / (self.total_steps - self.warmup_steps) * np.pi)))
+        self.model.optimizer.lr.assign(lr.numpy())
+        return self.global_steps.numpy(), self.model.optimizer.lr.numpy()
 
-    def __call__(self):
-        data_extraction = []
-        for line in tqdm(self.raw_data, desc="Load dataset"):
-            info_dict = {}
-            filename, text = line.strip().split('\t')
-            info_dict['filename'] = filename
-            info_dict['image'] = None
-            info_dict['label'] = text if self.sensitive else text.lower()
-            info_dict['lenght'] = len(text)
-            info_dict['path'] = self.data_dir
-            image_path = os.path.join(self.data_dir, filename)
 
-            if self.check_data:
+class AdvanceWarmUpLearningRate(tf.keras.callbacks.Callback):
+    def __init__(self, 
+                 result_path        = None,
+                 lr_init            = 0.01,
+                 lr_end             = 0.001,
+                 epochs             = 100,
+                 warmup_epoch_ratio = 0., 
+                 warmup_lr_ratio    = 0.,
+                 no_aug_epoch_ratio = 0.):
+        self.result_path         = result_path
+        self.result_path         = os.path.join(result_path, 'summary')
+        self.lr_init             = lr_init
+        self.lr_end              = lr_end
+        self.epochs              = epochs
+        self.warmup_total_epochs = min(max(warmup_epoch_ratio * epochs, 1), 3)
+        self.warmup_lr_start     = max(warmup_lr_ratio * lr_init, 1e-6)
+        self.no_aug_epoch        = min(max(no_aug_epoch_ratio * epochs, 1), 15)
+        self.lr_list             = [0]
+        self.epochs_list         = [0]
+        os.makedirs(self.result_path, exist_ok=True)
+
+    def on_epoch_begin(self, epoch, logs=None):
+        lr = self.lr_init
+        if epoch <= self.warmup_total_epochs:
+            lr = (lr - self.warmup_lr_start) * pow(epoch / float(self.warmup_total_epochs), 2) + self.warmup_lr_start
+        elif epoch >= self.epochs - self.no_aug_epoch:
+            lr = self.lr_end
+        else:
+            lr = self.lr_end + 0.5 * (lr - self.lr_end) * (1.0 + tf.cos(np.pi * (epoch - self.warmup_total_epochs) / (self.epochs - self.warmup_total_epochs - self.no_aug_epoch)))
+        self.model.optimizer.lr.assign(lr)
+        
+        if self.result_path:
+            self.lr_list.append(lr)
+            self.epochs_list.append(epoch + 1)
+
+            with open(os.path.join(self.result_path, "learning_rate.txt"), 'a') as f:
                 try:
-                    valid_image(image_path)
-                    img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
-                    shape = img.shape
-                except Exception as e:
-                    os.remove(image_path)
-                    print(f"Error: File {filename} is can't loaded: {e}")
-                    continue
-                    
-            if self.load_memory:
-                img = cv2.imread(image_path)
-                info_dict['image'] = img
-                
-            if self.max_string_length and (len(text) > self.max_string_length):
-                del info_dict['filename']
-                del info_dict['image']
-                del info_dict['label']
-                del info_dict['lenght']
-                
-            try:
-                for t in info_dict['label']:
-                    if t not in self.character:
-                        del info_dict['filename']
-                        del info_dict['image']
-                        del info_dict['label']
-                        del info_dict['lenght']
-                        break
-            except:
-                pass
+                    f.write(f"Learning rate in epoch {epoch + 1}: {str(lr.numpy())}")
+                except:
+                    f.write(f"Learning rate in epoch {epoch + 1}: {str(lr)}")
+                f.write("\n")
+            
+            plt.figure()
+            plt.plot(self.epochs_list, self.lr_list, 'red', linewidth=2, label='learning rate')
 
-            if info_dict:
-                data_extraction.append(info_dict)
-        return data_extraction
+            plt.grid(True)
+            plt.xlabel('Epoch')
+            plt.ylabel('Learning Rate')
+            plt.title('Learning Rate Schedule')
+            plt.legend(loc="upper right")
+
+            plt.savefig(os.path.join(self.result_path, "learning_rate.png"))
+            plt.cla()
+            plt.close("all")
+        return lr
+
+
+class BasicReduceLearningRate(tf.keras.callbacks.Callback):
+    def __init__(self, 
+                 lr_init, 
+                 lr_end, 
+                 epochs, 
+                 num_steps = 10):
+        self.decay_rate  = (lr_end / lr_init) ** (1 / (num_steps - 1))
+        step_size   = epochs / num_steps
+
+    def on_epoch_end(self, epoch, logs=None):
+        lr = self.model.optimizer.lr.numpy()
+        n       = epoch // self.step_size
+        out_lr  = lr * self.decay_rate ** n
+        self.model.optimizer.lr.assign(lr.numpy())
+        return lr.numpy()

@@ -1,7 +1,9 @@
-tensorflow
+# tensorflow
+tensorflow_addons
 opencv-python
 tqdm
 scipy
 scikit-learn
 matplotlib
 lmdb
+PyYAML

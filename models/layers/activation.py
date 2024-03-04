@@ -21,7 +21,7 @@ class Mixture(tf.keras.layers.Layer):
     def call(self, inputs, training=False):
         return self.p * inputs + (1 - self.p) * tf.nn.relu(inputs)
 
-        
+
 class HardTanh(tf.keras.layers.Layer):
     def __init__(self, min_val=-1.0, max_val=1.0, **kwargs):
         super(HardTanh, self).__init__(**kwargs)
@@ -42,6 +42,17 @@ class HardTanh(tf.keras.layers.Layer):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+
+
+class HardSigmoid(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super(HardSigmoid, self).__init__(**kwargs)
+        
+    def build(self, input_shape):
+        self.activation = HardTanh(min_val=0.0, max_val=6.0)
+
+    def call(self, inputs, training=False):
+        return self.activation(inputs + 3.0) / 6.0
 
         
 class HardSwish(tf.keras.layers.Layer):
@@ -342,6 +353,8 @@ def get_activation_from_name(activ_name, *args, **kwargs):
             return MemoryEfficientMish(*args, **kwargs)
         elif activ_name in ['hardtanh', 'hard-tanh', 'hard_tanh']:
             return HardTanh(*args, **kwargs)
+        elif activ_name in ['hardsigmoid', 'hard-sigmoid', 'hard_sigmoid']:
+            return HardSigmoid(*args, **kwargs)
         elif activ_name in ['hardswish', 'hard-swish', 'hard_swish']:
             return HardSwish(*args, **kwargs)
         elif activ_name in ['geluquick', 'gelu-quick', 'gelu_quick']:
