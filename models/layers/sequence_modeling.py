@@ -97,4 +97,5 @@ class ConvolutionHead(tf.keras.Model):
 
     def call(self, inputs, training=False):
         x = self.block(inputs, training=training)
+        x = tf.squeeze(x, axis=1)
         return x
