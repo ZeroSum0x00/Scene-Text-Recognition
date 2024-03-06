@@ -4,6 +4,7 @@ from tensorflow.keras.layers import GRU
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Bidirectional
 from tensorflow.keras.layers import Dense
+from .simple_block import ConvolutionBlock
 
 
 class BidirectionalLSTM(tf.keras.layers.Layer):
@@ -96,4 +97,5 @@ class ConvolutionHead(tf.keras.Model):
 
     def call(self, inputs, training=False):
         x = self.block(inputs, training=training)
+        x = tf.squeeze(x, axis=1)
         return x
