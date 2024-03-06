@@ -107,7 +107,7 @@ class RepDepthwiseSeparable(DepthwiseSeparable):
                                           training=False)
 
         
-def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard-swish', normalizer='batch-norm'):
+def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard-swish', normalizer='batch-norm', drop_rate=0.25):
     img_input = Input(shape=input_shape)
     f0, f1, f2, f3, f4, f5 = num_filters
 
@@ -117,7 +117,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                          padding="SAME",
                          activation=activation,
                          normalizer=normalizer)(img_input)
-    x = SpatialDropout2D(0.35)(x)
+    x = SpatialDropout2D(drop_rate)(x)
     
     x = DepthwiseSeparable(filters=[f0, f1],
                            dw_kernel=(3, 3),
@@ -127,7 +127,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                            expansion=expansion,
                            activation=activation,
                            normalizer=normalizer)(x)
-    x = SpatialDropout2D(0.35)(x)
+    x = SpatialDropout2D(drop_rate)(x)
 
     x = DepthwiseSeparable(filters=[f1, f2],
                            dw_kernel=(3, 3),
@@ -137,7 +137,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                            expansion=expansion,
                            activation=activation,
                            normalizer=normalizer)(x)
-    x = SpatialDropout2D(0.35)(x)
+    x = SpatialDropout2D(drop_rate)(x)
 
     x = DepthwiseSeparable(filters=[f2, f2],
                            dw_kernel=(3, 3),
@@ -147,7 +147,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                            expansion=expansion,
                            activation=activation,
                            normalizer=normalizer)(x)
-    x = SpatialDropout2D(0.35)(x)
+    x = SpatialDropout2D(drop_rate)(x)
 
     x = DepthwiseSeparable(filters=[f2, f3],
                            dw_kernel=(3, 3),
@@ -157,7 +157,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                            expansion=expansion,
                            activation=activation,
                            normalizer=normalizer)(x)
-    x = SpatialDropout2D(0.35)(x)
+    x = SpatialDropout2D(drop_rate)(x)
 
     x = DepthwiseSeparable(filters=[f3, f3],
                            dw_kernel=(3, 3),
@@ -167,7 +167,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                            expansion=expansion,
                            activation=activation,
                            normalizer=normalizer)(x)
-    x = SpatialDropout2D(0.35)(x)
+    x = SpatialDropout2D(drop_rate)(x)
 
     x = DepthwiseSeparable(filters=[f3, f4],
                            dw_kernel=(3, 3),
@@ -177,7 +177,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                            expansion=expansion,
                            activation=activation,
                            normalizer=normalizer)(x)
-    x = SpatialDropout2D(0.35)(x)
+    x = SpatialDropout2D(drop_rate)(x)
 
     for _ in range(5):
         x = DepthwiseSeparable(filters=[f4, f4],
@@ -188,7 +188,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                                expansion=expansion,
                                activation=activation,
                                normalizer=normalizer)(x)
-        x = SpatialDropout2D(0.35)(x)
+        x = SpatialDropout2D(drop_rate)(x)
 
     x = DepthwiseSeparable(filters=[f4, f5],
                            dw_kernel=(5, 5),
@@ -199,7 +199,7 @@ def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard
                            use_se=True,
                            activation=activation,
                            normalizer=normalizer)(x)
-    x = SpatialDropout2D(0.35)(x)
+    x = SpatialDropout2D(drop_rate)(x)
 
     x = DepthwiseSeparable(filters=[f5, f5],
                            dw_kernel=(5, 5),
