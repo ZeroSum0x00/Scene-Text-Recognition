@@ -81,7 +81,7 @@ class MDLSTM(tf.keras.layers.Layer):
         return x
 
 
-class ConvolutionHead(tf.keras.Model):
+class ConvolutionHead(tf.keras.layers.Layer):
     def __init__(self, hidden_dim, num_classes=1000, activation='relu', normalizer='batch-norm', *args, **kwargs):
         super(ConvolutionHead, self).__init__(*args, **kwargs)
         self.hidden_dim  = hidden_dim
