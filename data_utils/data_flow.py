@@ -26,7 +26,9 @@ def get_train_test_data(data_dirs,
                         normalizer='divide',
                         mean_norm=None,
                         std_norm=None,
-                        resize_with_pad=True,
+                        norm_resize_with_pad=False,
+                        norm_padding_mode='constant', 
+                        norm_padding_color=[255, 255, 255],
                         data_type='txt',
                         check_data=False,
                         load_memory=False,
@@ -59,7 +61,9 @@ def get_train_test_data(data_dirs,
                                     normalizer              = normalizer,
                                     mean_norm               = mean_norm,
                                     std_norm                = std_norm,
-                                    resize_with_pad         = resize_with_pad,
+                                    norm_resize_with_pad    = norm_resize_with_pad,
+                                    norm_padding_mode       = norm_padding_mode, 
+                                    norm_padding_color      = norm_padding_color,
                                     phase                   = 'train',
                                     *args, **kwargs)
 
@@ -83,7 +87,9 @@ def get_train_test_data(data_dirs,
                                         normalizer              = normalizer,
                                         mean_norm               = mean_norm,
                                         std_norm                = std_norm,
-                                        resize_with_pad         = resize_with_pad,
+                                        norm_resize_with_pad    = norm_resize_with_pad,
+                                        norm_padding_mode       = norm_padding_mode, 
+                                        norm_padding_color      = norm_padding_color,
                                         phase                   = 'valid',
                                         *args, **kwargs)
     else:
@@ -109,7 +115,9 @@ def get_train_test_data(data_dirs,
                                         normalizer              = normalizer,
                                         mean_norm               = mean_norm,
                                         std_norm                = std_norm,
-                                        resize_with_pad         = resize_with_pad,
+                                        norm_resize_with_pad    = norm_resize_with_pad,
+                                        norm_padding_mode       = norm_padding_mode, 
+                                        norm_padding_color      = norm_padding_color,
                                         phase                   = 'test',
                                         *args, **kwargs)
     else:
@@ -131,10 +139,11 @@ class Data_Sequence(Sequence):
                  normalizer=None,
                  mean_norm=None, 
                  std_norm=None, 
-                 resize_with_pad=True,
+                 norm_resize_with_pad=False,
+                 norm_padding_mode='constant', 
+                 norm_padding_color=[255, 255, 255],
                  phase='train', 
                  debug_mode=False):
-
         self.dataset = dataset
         self.target_size = target_size
         self.batch_size = batch_size
@@ -148,7 +157,12 @@ class Data_Sequence(Sequence):
         self.phase       = phase
         self.debug_mode  = debug_mode
                      
-        self.normalizer = Normalizer(normalizer, mean=mean_norm, std=std_norm, resize_with_pad=resize_with_pad)
+        self.normalizer = Normalizer(normalizer, 
+                                     mean=mean_norm, 
+                                     std=std_norm, 
+                                     resize_with_pad=norm_resize_with_pad, 
+                                     padding_mode=norm_padding_mode, 
+                                     padding_color=norm_padding_color)
         self.label_converter = character_converter
 
         if augmentor and isinstance(augmentor, list):

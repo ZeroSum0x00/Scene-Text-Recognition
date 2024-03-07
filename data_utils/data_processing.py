@@ -1,6 +1,7 @@
 import os
 import cv2
 import math
+import random
 import numpy as np
 from glob import glob
 from utils.files import extract_zip, get_files
@@ -75,12 +76,15 @@ def get_data(data_dirs, annotation_dirs,
 
 
 class Normalizer():
-    def __init__(self, norm_type="divide", mean=None, std=None, resize_with_pad=True):
-        self.norm_type = norm_type
-        self.mean      = mean
-        self.std       = std
+    def __init__(self, norm_type="divide", mean=None, std=None, resize_with_pad=True, padding_mode='constant', padding_color=None):
+        assert padding_mode.lower() in ('constant', 'reflect', 'minimum', 'maximum', 'median')
+        self.norm_type       = norm_type
+        self.mean            = mean
+        self.std             = std
         self.resize_with_pad = resize_with_pad
-
+        self.padding_mode    = padding_mode
+        self.padding_color   = padding_color
+            
     def __get_standard_deviation(self, img):
         if self.mean is not None:
             for i in range(img.shape[-1]):
@@ -97,8 +101,23 @@ class Normalizer():
                     img[..., i] /= (self.std[i] + 1e-20)
         return img
 
-    @classmethod
-    def __resize_with_pad(cls, image, target_size, interpolation=None):
+    def __resize_with_pad(self, image, target_size, interpolation=None):
+        if self.padding_mode.lower() == 'constant':
+            if self.padding_color and isinstance(self.padding_color, (int, float)):
+                fill_color = [self.padding_color, self.padding_color, self.padding_color]
+            elif self.padding_color and isinstance(self.padding_color, (list, tuple)):
+                fill_color = self.padding_color
+            else:
+                fill_color = [random.randint(0, 255) for _ in range(image.shape[-1])]
+        elif self.padding_mode.lower() == 'minimum':
+            fill_color = np.min(image)
+        elif self.padding_mode.lower() == 'maximum':
+            fill_color = np.max(image)
+        elif self.padding_mode.lower() == 'median':
+            fill_color = np.mean(image)
+        else:
+            fill_color = 0.
+
         if len(image.shape) == 3:
             h, w, _ = image.shape
         else:
@@ -113,10 +132,10 @@ class Normalizer():
         if len(image.shape) == 2:
             image = np.expand_dims(image, axis=-1)
         new_h, new_w = target_size[0], resized_w
-        pad_image = np.zeros(target_size)
+        pad_image = np.full(target_size, fill_color)
         pad_image[:, :new_w, :] = image
 
-        if target_size[1] != new_w:  # add border Pad
+        if self.padding_mode.lower() == 'reflect' and target_size[1] != new_w:  # add border Pad
             pad_image[:, new_w:, :] = np.expand_dims(image[:, new_w-1, :], axis=1)
         return pad_image
 

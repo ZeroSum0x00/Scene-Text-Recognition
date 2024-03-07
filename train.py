@@ -22,24 +22,26 @@ def train(file_config=None):
         shutil.copy(file_config, os.path.join(TRAINING_TIME_PATH, os.path.basename(file_config)))
         
         converter, model = build_models(config['Model'])
-        train_generator, valid_generator, test_generator = get_train_test_data(data_dirs           = data_config['data_dir'],
-                                                                               annotation_dirs     = data_config['annotation_dir'],
-                                                                               target_size         = config['Model']['input_shape'], 
-                                                                               batch_size          = train_config['batch_size'],
-                                                                               character           = data_config['data_info']['character'],
-                                                                               character_converter = converter,
-                                                                               max_string_length   = data_config['data_info']['max_string_length'], 
-                                                                               sensitive           = data_config['data_info']['sensitive'],
-                                                                               color_space         = data_config['data_info']['color_space'],
-                                                                               augmentor           = data_config['data_augmentation'],
-                                                                               normalizer          = data_config['data_normalizer']['norm_type'],
-                                                                               mean_norm           = data_config['data_normalizer']['norm_mean'],
-                                                                               std_norm            = data_config['data_normalizer']['norm_std'],
-                                                                               resize_with_pad     = data_config['data_normalizer']['norm_resize_with_pad'],
-                                                                               data_type           = data_config['data_info']['data_type'],
-                                                                               check_data          = data_config['data_info']['check_data'],
-                                                                               load_memory         = data_config['data_info']['load_memory'],
-                                                                               dataloader_mode     = data_config['data_loader_mode'])
+        train_generator, valid_generator, test_generator = get_train_test_data(data_dirs            = data_config['data_dir'],
+                                                                               annotation_dirs      = data_config['annotation_dir'],
+                                                                               target_size          = config['Model']['input_shape'], 
+                                                                               batch_size           = train_config['batch_size'],
+                                                                               character            = data_config['data_info']['character'],
+                                                                               character_converter  = converter,
+                                                                               max_string_length    = data_config['data_info']['max_string_length'], 
+                                                                               sensitive            = data_config['data_info']['sensitive'],
+                                                                               color_space          = data_config['data_info']['color_space'],
+                                                                               augmentor            = data_config['data_augmentation'],
+                                                                               normalizer           = data_config['data_normalizer']['norm_type'],
+                                                                               mean_norm            = data_config['data_normalizer']['norm_mean'],
+                                                                               std_norm             = data_config['data_normalizer']['norm_std'],
+                                                                               norm_resize_with_pad = data_config['data_normalizer']['norm_resize_with_pad'],
+                                                                               norm_padding_mode    = data_config['data_normalizer']['norm_padding_mode'],
+                                                                               norm_padding_color   = data_config['data_normalizer']['norm_padding_color'],
+                                                                               data_type            = data_config['data_info']['data_type'],
+                                                                               check_data           = data_config['data_info']['check_data'],
+                                                                               load_memory          = data_config['data_info']['load_memory'],
+                                                                               dataloader_mode      = data_config['data_loader_mode'])
 
         optimizer = build_optimizer(config['Optimizer'])
         losses    = build_losses(config['Losses'])
@@ -70,4 +72,4 @@ def train(file_config=None):
         
         
 if __name__ == '__main__':
-    train('./configs/abinet/tps-abinet.yaml')
+    train('./configs/crnn/none-vgg-bilstm.yaml')
