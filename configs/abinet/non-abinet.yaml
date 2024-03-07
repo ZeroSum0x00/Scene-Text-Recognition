@@ -2,8 +2,8 @@ Dataset:
     data_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K'
     annotation_dir: null
     data_info:
-        data_type: 'lmdb'
-        character: &char '0123456789abcdefghijklmnopqrstuvwxyz'
+        data_type: 'filename'
+        character: &char './configs/data/china.names'
         max_string_length: &max_length 50
         color_space: 'rgb'
         sensitive: False
@@ -29,7 +29,6 @@ Dataset:
             # - RandomErodeDilate:
             #     kernel_size: [3, 3]
             # - RandomSaltAndPepper:
-            #     ratio_range: 0.3
             #     phi_range: 0.1
             # - RandomSharpen:
             #     lightness_range: [0.75, 2.0]
@@ -45,37 +44,44 @@ Dataset:
     data_loader_mode: 0
 
 Model:
-    input_shape: [32, 200, 3]
+    input_shape: [32, 128, 3]
     weight_path: null
     load_weight_type: null
     Architecture:
-        name: CRNN
+        name: ABINet
+        embed_dim: 512
+        num_heads: 8
+        out_dim: 2048
+        loop_iters: 3
+        encoder_layers: 3
+        decoder_layers: 4
+        max_length: *max_length
+        blank_index: &blank_index 0
+        drop_rate: 0.1
+    Backbone:
+        name: ResNet34
+        num_blocks: [3, 4, 6, 6, 3]
     LabelConverter:
-        name: CTCLabelConverter
+        name: OnehotLabelConverter
         character: *char
         batch_max_length: *max_length
-        blank_index: -1
-    Backbone:
-        name: VGG_FeatureExtractor
-        num_filters: [64, 128, 256, 512]
-    SequenceLayer:
-        name: CascadeBidirectionalLSTM
-        units: 256
-        use_dense: False
-        num_layer: 2
+        blank_index: *blank_index
     TransformLayer:
-
+        # name: TPS_SpatialTransformerNetwork
+        # F: 10
+        
 Train:
+    # mode: 'eager'
     mode: 'graph'
     save_weight_path: &save_weight './saved_weights/'
     save_weight_type: &save_type 'tf'
-    batch_size: 64
+    batch_size: 32
     epoch:
         start: 0
-        end: &end_epoch 1000
+        end: 1000
         
 Losses:
-    - CTCLoss:
+    - CascadeCrossentropy:
         coeff: 1
 
 Optimizer:
@@ -83,13 +89,11 @@ Optimizer:
     beta_1: 0.9
     beta_2: 0.999
     learning_rate: 0.0001
-    global_clipnorm: 5.0
+    global_clipnorm: 20.0
 
 Metrics:
-    - CTCCharacterAccuracy:
-        vocabulary: *char
-    - CTCWordAccuracy:
-        vocabulary: *char
+    - EntropyCharAccuracy:
+    - EntropyWordAccuracy:
 
 Callbacks:
     - MetricHistory:

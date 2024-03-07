@@ -13,7 +13,9 @@ Dataset:
         norm_type: 'sub_divide'
         norm_mean: null
         norm_std: null
-        norm_resize_with_pad: False
+        norm_resize_with_pad: True
+        norm_padding_mode: 'constant'
+        norm_padding_color: [255, 255, 255]
     data_augmentation:
         train:
             - RandomRotate:
