@@ -6,7 +6,7 @@ from .activation import (get_activation_from_name,
                          GELUQuick, GELULinear, 
                          AconC, MetaAconC, ELSA)
 from .simple_block import ConvolutionBlock
-from .sequence_modeling import GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM, ConvolutionHead
+from .sequence_modeling import GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM, ConvolutionHead, SVTRHead
 from .str_attention import STRAttention
 from .label_converter import CTCLabelConverter, OnehotLabelConverter, SparseOnehotLabelConverter, AttnLabelConverter
 from .tps_spatial_transformer import TPS_SpatialTransformerNetwork

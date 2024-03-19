@@ -90,12 +90,11 @@ class TPS_SpatialTransformerNetworkV2(tf.keras.layers.Layer):
         self.margins            = margins
 
     def build(self, input_shape):
+        bs = input_shape[0]
         image_size = input_shape[1:-1]
         target_control_points = self.build_output_control_points()
         target_control_points = tf.convert_to_tensor(target_control_points, dtype=tf.float32)
-        self.target_control_points = tf.Variable(
-            initial_value=target_control_points, trainable=True, name=f'TPS_SpatialTransformerNetworkV2/target_control_points'
-        )
+
         N = self.num_control_points
 
         # create padded kernel matrix
@@ -133,7 +132,7 @@ class TPS_SpatialTransformerNetworkV2(tf.keras.layers.Layer):
         self.padding_matrix = tf.Variable(
             initial_value=padding_matrix, trainable=True, name=f'TPS_SpatialTransformerNetworkV2/padding_matrix'
         )
-
+        
         self.localization_network = LocalizationNetwork(self.num_control_points, control_activation=True)
 
     def build_output_control_points(self):
@@ -157,7 +156,7 @@ class TPS_SpatialTransformerNetworkV2(tf.keras.layers.Layer):
 
         pairwise_diff = input_points - control_points
         # original implementation, very slow
-        # pairwise_dist = torch.sum(pairwise_diff ** 2, dim = 2) # square of distance
+        # pairwise_dist = tf.reduce_sum(pairwise_diff ** 2, axis=2) # square of distance
         pairwise_diff_square = pairwise_diff * pairwise_diff
         pairwise_dist = pairwise_diff_square[:, :, 0] + pairwise_diff_square[:, :, 1]
         repr_matrix = 0.5 * pairwise_dist * np.log(pairwise_dist, where=pairwise_dist > 0)

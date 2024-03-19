@@ -20,8 +20,8 @@ class CRNN(tf.keras.Model):
         if not isinstance(self.sequence_net, ConvolutionHead):
             reduce_lenght         = self.backbone.output.shape[1]
             self.map_to_sequence  = AveragePooling2D((reduce_lenght, 1))
-            self.predictor        = Dense(units=self.num_classes)
-
+            
+        self.predictor        = Dense(units=self.num_classes)
         self.final_activation = Softmax(axis=-1)
 
     def call(self, inputs, training=False):

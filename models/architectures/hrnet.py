@@ -3,15 +3,8 @@ import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import ZeroPadding2D
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import UpSampling2D
-from tensorflow.keras.layers import AveragePooling2D
-from tensorflow.keras.layers import GlobalMaxPooling2D
-from tensorflow.keras.layers import GlobalAveragePooling2D
-from tensorflow.keras.layers import Flatten
-from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import add
 from tensorflow.keras.layers import concatenate
 from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock

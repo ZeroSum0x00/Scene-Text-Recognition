@@ -99,3 +99,25 @@ class ConvolutionHead(tf.keras.layers.Layer):
         x = self.block(inputs, training=training)
         x = tf.squeeze(x, axis=1)
         return x
+
+
+class SVTRHead(tf.keras.layers.Layer):
+    def __init__(self, hidden_dim=-1, num_classes=1000, *args, **kwargs):
+        super(SVTRHead, self).__init__(*args, **kwargs)
+        self.hidden_dim  = hidden_dim
+        self.num_classes = num_classes
+
+    def build(self, input_shape):
+        if self.hidden_dim != -1:
+            self.block = Sequential([
+                Dense(units=self.hidden_dim),
+                Dense(units=self.num_classes)
+            ])
+        else:
+            self.block = Sequential([
+                Dense(units=self.num_classes)
+            ])
+
+    def call(self, inputs, training=False):
+        x = self.block(inputs, training=training)
+        return x

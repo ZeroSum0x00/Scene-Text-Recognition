@@ -8,7 +8,7 @@ from .satrn import SATRN
 from .layers import (CTCLabelConverter, OnehotLabelConverter, SparseOnehotLabelConverter, AttnLabelConverter,
                      TPS_SpatialTransformerNetwork, TPS_SpatialTransformerNetworkV2, SimpleSpatialTransformer,
                      STRAttention,
-                     GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM, ConvolutionHead)
+                     GRU, LSTM, BidirectionalLSTM, CascadeBidirectionalLSTM, MDLSTM, ConvolutionHead, SVTRHead)
 from .architectures import (ShallowCNN, VGG_FeatureExtractor, GRCNN_FeatureExtractor, ResNet_FeatureExtractor, 
                             HRNet_FeatureExtractor, ResNet34, LCNet, SVTRNet)
 
@@ -39,7 +39,7 @@ def build_models(config, weights=None):
         if 'SequenceLayer' in config and config['SequenceLayer']:
             sequen_layer_config = config['SequenceLayer']
             sequen_layer_name = sequen_layer_config.pop("name")
-            if sequen_layer_name == "ConvolutionHead":
+            if sequen_layer_name == "ConvolutionHead" or sequen_layer_name == "SVTRHead":
                 sequen_layer_config['num_classes'] = num_class
             sequen_layer = getattr(mod, sequen_layer_name)(**sequen_layer_config)
         else:

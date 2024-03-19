@@ -1,6 +1,7 @@
 import os
 import cv2
 import math
+import types
 import random
 import numpy as np
 from glob import glob

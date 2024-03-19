@@ -2,8 +2,6 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import MaxPooling2D
 from models.layers import get_activation_from_name, get_normalizer_from_name
 

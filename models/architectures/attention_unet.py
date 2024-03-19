@@ -1,12 +1,11 @@
 import tensorflow as tf
-from tensorflow.keras.models import Model
+from tensorflow.keras import Model
+from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import UpSampling2D
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import SpatialDropout2D
-from tensorflow.keras.layers import add
-from tensorflow.keras.initializers import RandomNormal
-from tensorflow.keras.regularizers import l2
+from tensorflow.keras.layers import concatenate
 from models.layers import get_activation_from_name, get_normalizer_from_name
 from .unet import convolution_block
 

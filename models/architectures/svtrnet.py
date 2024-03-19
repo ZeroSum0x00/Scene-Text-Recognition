@@ -9,10 +9,6 @@ from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import Reshape
 from tensorflow.keras.layers import AveragePooling2D
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import concatenate
-from utils.train_processing import losses_prepare
-from tensorflow.keras.initializers import RandomNormal
-from tensorflow.keras.regularizers import l2
 from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock, PositionalEmbedding, MLPBlock, DropPath
 
 
@@ -203,7 +199,7 @@ class SubSample(tf.keras.layers.Layer):
         return x
 
 
-class SVTRBlock(tf.keras.Model):
+class SVTRBlock(tf.keras.layers.Layer):
     def __init__(self,
                  mixer_layer,
                  mlp_dim,
@@ -279,12 +275,13 @@ def SVTRNet(num_filters=[64, 128, 256],
             drop_path_rate=0.1,
             final_drop=0.1):
   
-    img_input = Input(shape=input_shape)
-    f0, f1, f2 = num_filters
-    h0, h1, h2 = num_heads
-    n0, n1, n2 = num_blocks
-    size = [input_shape[0] // patch_size[0], input_shape[1] // patch_size[1]]
-
+    img_input   = Input(shape=input_shape)
+    f0, f1, f2  = num_filters
+    h0, h1, h2  = num_heads
+    n0, n1, n2  = num_blocks
+    height_size = input_shape[0] // patch_size[0]
+    width_size  = input_shape[1] // patch_size[1]
+                
     x = ExtractPatches(embed_dim=f0, 
                        patch_size=patch_size, 
                        iter=2, 
@@ -301,9 +298,17 @@ def SVTRNet(num_filters=[64, 128, 256],
         drop_rate = dpr[0:n0][i]
 
         if mixer_mode == 'Conv':
-            mixer_layer = ConvolutionMixer(filters=f0, kernel_size=local_kernel, groups=h0, size=size)
+            mixer_layer = ConvolutionMixer(filters=f0, kernel_size=local_kernel, groups=h0, size=[height_size, width_size])
         else:
-            mixer_layer = Attention(embed_dim=f0, num_heads=h0, mixer=mixer_mode, size=size, local_kernel=local_kernel, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=proj_drop)
+            mixer_layer = Attention(embed_dim=f0, 
+                                    num_heads=h0, 
+                                    mixer=mixer_mode, 
+                                    size=[height_size, width_size], 
+                                    local_kernel=local_kernel, 
+                                    qkv_bias=qkv_bias, 
+                                    qk_scale=qk_scale, 
+                                    attn_drop=attn_drop, 
+                                    proj_drop=proj_drop)
         
         mlp_dim = f0 * mlp_ratio
         x = SVTRBlock(mixer_layer, 
@@ -315,21 +320,29 @@ def SVTRNet(num_filters=[64, 128, 256],
                       drop_path_prob=drop_rate)(x)
 
     if submodule_mode:
-        x = tf.reshape(x, shape=[-1, size[0], size[1], f0])
+        x = tf.reshape(x, shape=[-1, height_size, width_size, f0])
         x = SubSample(f1, 
                       strides=[2, 1],
                       mode=submodule_mode, 
                       normalizer=normalizer)(x)
-        size[0] = size[0] // 2
-    
+        height_size = height_size // 2
+
     for i in range(n1):
         mixer_mode = mixer[n0:n0 + n1][i]
         drop_rate = dpr[n0:n0 + n1][i]
 
         if mixer_mode == 'Conv':
-            mixer_layer = ConvolutionMixer(filters=f1, kernel_size=local_kernel, groups=h1, size=size)
+            mixer_layer = ConvolutionMixer(filters=f1, kernel_size=local_kernel, groups=h1, size=[height_size, width_size])
         else:
-            mixer_layer = Attention(embed_dim=f1, num_heads=h1, mixer=mixer_mode, size=size, local_kernel=local_kernel, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=proj_drop)
+            mixer_layer = Attention(embed_dim=f1, 
+                                    num_heads=h1, 
+                                    mixer=mixer_mode, 
+                                    size=[height_size, width_size], 
+                                    local_kernel=local_kernel, 
+                                    qkv_bias=qkv_bias, 
+                                    qk_scale=qk_scale, 
+                                    attn_drop=attn_drop, 
+                                    proj_drop=proj_drop)
 
         mlp_dim = f1 * mlp_ratio
         x = SVTRBlock(mixer_layer, 
@@ -341,21 +354,29 @@ def SVTRNet(num_filters=[64, 128, 256],
                       drop_path_prob=drop_rate)(x)
 
     if submodule_mode:
-        x = tf.reshape(x, shape=[-1, size[0], size[1], f1])
+        x = tf.reshape(x, shape=[-1, height_size, width_size, f1])
         x = SubSample(f2, 
                       strides=[2, 1],
                       mode=submodule_mode, 
                       normalizer=normalizer)(x)
-        size[0] = size[0] // 2
+        height_size = height_size // 2
 
     for i in range(n2):
         mixer_mode = mixer[n0 + n1:][i]
         drop_rate = dpr[n0 + n1:][i]
 
         if mixer_mode == 'Conv':
-            mixer_layer = ConvolutionMixer(filters=f2, kernel_size=local_kernel, groups=h2, size=size)
+            mixer_layer = ConvolutionMixer(filters=f2, kernel_size=local_kernel, groups=h2, size=[height_size, width_size])
         else:
-            mixer_layer = Attention(embed_dim=f2, num_heads=h2, mixer=mixer_mode, size=size, local_kernel=local_kernel, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=proj_drop)
+            mixer_layer = Attention(embed_dim=f2, 
+                                    num_heads=h2, 
+                                    mixer=mixer_mode, 
+                                    size=[height_size, width_size], 
+                                    local_kernel=local_kernel, 
+                                    qkv_bias=qkv_bias, 
+                                    qk_scale=qk_scale, 
+                                    attn_drop=attn_drop, 
+                                    proj_drop=proj_drop)
         
         mlp_dim = f2 * mlp_ratio
         x = SVTRBlock(mixer_layer, 
@@ -368,10 +389,10 @@ def SVTRNet(num_filters=[64, 128, 256],
 
     if not use_prenorm:
         x = get_normalizer_from_name(normalizer)(x)
-        
+
     if include_top:
-        x = tf.reshape(x, shape=[-1, size[0], size[1], f2])
-        x = AveragePooling2D((size[0], int(size[1] // max_length) if size[1] > max_length else 1))(x)
+        x = tf.reshape(x, shape=[-1, height_size, width_size, f2])
+        x = AveragePooling2D((height_size, int(width_size // max_length) if width_size > max_length else 1))(x)
         x = Conv2D(filters=classes,
                    kernel_size=(1, 1),
                    strides=(1, 1),
@@ -380,5 +401,5 @@ def SVTRNet(num_filters=[64, 128, 256],
         x = get_activation_from_name(final_activation)(x)
         x = Dropout(final_drop)(x)
 
-    model = Model(img_input, x)
+    model = Model(inputs=img_input, outputs=x, name='SVTRNet')
     return model
