@@ -30,7 +30,9 @@ def build_models(config, weights=None):
     
     backbone_config = config['Backbone']
     backbone_config['input_shape'] = input_shape
-    backbone_config['classes'] = num_class
+    if 'out_channels' in backbone_config:
+        backbone_config['classes'] = backbone_config['out_channels']
+        del backbone_config['out_channels']
     backbone_name = backbone_config.pop("name")
     backbone = getattr(mod, backbone_name)(**backbone_config)
     architecture_config['backbone'] = backbone
