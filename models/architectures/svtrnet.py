@@ -285,7 +285,6 @@ def SVTRNet(num_filters=[64, 128, 256],
     n0, n1, n2  = num_blocks
     height_size = input_shape[0] // patch_size[0]
     width_size  = input_shape[1] // patch_size[1]
-    print(height_size, width_size)
                 
     x = ExtractPatches(embed_dim=f0, 
                        patch_size=patch_size, 
@@ -323,7 +322,6 @@ def SVTRNet(num_filters=[64, 128, 256],
                       mode=submodule_mode, 
                       normalizer=normalizer)(x)
         height_size = height_size // 2
-    print(height_size, width_size)
 
     for i in range(n1):
         mixer_mode = mixer[n0:n0 + n1][i]
@@ -350,7 +348,6 @@ def SVTRNet(num_filters=[64, 128, 256],
                       mode=submodule_mode, 
                       normalizer=normalizer)(x)
         height_size = height_size // 2
-    print(height_size, width_size)
 
     for i in range(n2):
         mixer_mode = mixer[n0 + n1:][i]
