@@ -3,6 +3,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import SpatialDropout2D
 from tensorflow.keras.layers import GlobalAveragePooling2D
 from models.layers import ConvolutionBlock, RepVGGBlock
 
@@ -107,7 +108,7 @@ class RepDepthwiseSeparable(DepthwiseSeparable):
                                           training=False)
 
 
-def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard-swish', normalizer='batch-norm', drop_rate=0.25):
+def LCNet(num_filters, input_shape=(32, 200, 3), expansion=0.5, activation='hard-swish', normalizer='batch-norm', classes=1000, drop_rate=0.25):
     img_input = Input(shape=input_shape)
     f0, f1, f2, f3, f4, f5 = num_filters
 

@@ -1,9 +1,12 @@
 import tensorflow as tf
 from tensorflow.keras import Model
+from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import ZeroPadding2D
 from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import SpatialDropout2D
+from tensorflow.keras.layers import add
 from models.layers import get_activation_from_name, get_normalizer_from_name
 
 
@@ -32,7 +35,7 @@ def GRCL(inputs, filters, kernel_size, num_iteration, activation='relu', normali
     return x
 
 
-def GRCNN_FeatureExtractor(input_shape=(32, 100, 1), activation='relu', normalizer='batch-norm'):
+def GRCNN_FeatureExtractor(input_shape=(32, 100, 1), activation='relu', normalizer='batch-norm', classes=1000):
     """ 
         FeatureExtractor of GRCNN (https://papers.nips.cc/paper/6637-gated-recurrent-convolution-neural-network-for-ocr.pdf) 
     """

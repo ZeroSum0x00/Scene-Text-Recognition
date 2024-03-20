@@ -5,6 +5,7 @@ from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import add
 from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import Activation
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
 from models.layers import get_activation_from_name, get_normalizer_from_name
@@ -30,7 +31,7 @@ def BasicBlock(input_tensor, filters, kernel_size=3, strides=(1, 1), downsaple=F
     return x
 
 
-def ResNet34(num_blocks, input_shape=(32, 128, 3), activation='relu', normalizer='batch-norm'):
+def ResNet34(num_blocks, input_shape=(32, 128, 3), activation='relu', normalizer='batch-norm', classes=1000):
     img_input = Input(shape=input_shape)
     x = Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1), padding="SAME", use_bias=False, kernel_initializer=RandomNormal(stddev=0.02), kernel_regularizer=l2(5e-4))(img_input)
     x = get_normalizer_from_name(normalizer)(x)

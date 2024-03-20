@@ -3,8 +3,15 @@ import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import ZeroPadding2D
 from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import UpSampling2D
+from tensorflow.keras.layers import AveragePooling2D
+from tensorflow.keras.layers import GlobalMaxPooling2D
+from tensorflow.keras.layers import GlobalAveragePooling2D
+from tensorflow.keras.layers import Flatten
+from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import add
 from tensorflow.keras.layers import concatenate
 from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock
@@ -219,7 +226,7 @@ class HRBlock(tf.keras.Model):
         return final_res_list
 
 
-def HRNet_FeatureExtractor(input_shape=(32, 400, 1), filters=32, hidden_dims=64, iters=4, activation='relu', normalizer='batch-norm'):
+def HRNet_FeatureExtractor(input_shape=(32, 400, 1), filters=32, hidden_dims=64, iters=4, activation='relu', normalizer='batch-norm', classes=1000):
     img_input = Input(shape=input_shape)
     x = ConvolutionBlock(64, 1, 1, use_bias=False, activation=activation, normalizer=normalizer)(img_input)
     x = ConvolutionBlock(64, 1, 1, use_bias=False, activation=activation, normalizer=normalizer)(x)

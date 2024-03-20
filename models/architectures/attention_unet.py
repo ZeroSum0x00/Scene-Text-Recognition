@@ -1,11 +1,12 @@
 import tensorflow as tf
-from tensorflow.keras import Model
-from tensorflow.keras import Sequential
+from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import UpSampling2D
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import concatenate
+from tensorflow.keras.layers import SpatialDropout2D
+from tensorflow.keras.layers import add
+from tensorflow.keras.initializers import RandomNormal
+from tensorflow.keras.regularizers import l2
 from models.layers import get_activation_from_name, get_normalizer_from_name
 from .unet import convolution_block
 
@@ -53,7 +54,7 @@ def upsample_block(inputs, filters, activation='relu', normalizer='batch-norm'):
     return x
 
 
-def AttentionUNet_FeatureExtractor(num_filters, out_dims, input_shape=(32, 400, 3)):
+def AttentionUNet_FeatureExtractor(num_filters, out_dims, input_shape=(32, 400, 3), classes=1000):
     f0, f1, f2, f3, f4 = num_filters
     img_input = Input(shape=input_shape)
     

@@ -30,6 +30,7 @@ def build_models(config, weights=None):
     
     backbone_config = config['Backbone']
     backbone_config['input_shape'] = input_shape
+    backbone_config['classes'] = num_class
     backbone_name = backbone_config.pop("name")
     backbone = getattr(mod, backbone_name)(**backbone_config)
     architecture_config['backbone'] = backbone

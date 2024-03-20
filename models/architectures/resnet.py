@@ -3,7 +3,6 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import SpatialDropout2D
 from tensorflow.keras.layers import add
 from tensorflow.keras.initializers import RandomNormal
@@ -11,7 +10,7 @@ from tensorflow.keras.regularizers import l2
 from models.layers import get_activation_from_name, get_normalizer_from_name
 
 
-def BasicBlock(input_tensor, filters, kernel_size=3, downsaple=False, activation='relu', normalizer='batch-norm'):
+def BasicBlock(input_tensor, filters, kernel_size=3, downsaple=False, activation='relu', normalizer='batch-norm', classes=1000):
     filter1, filter2 = filters
     shortcut = input_tensor
     strides = 1

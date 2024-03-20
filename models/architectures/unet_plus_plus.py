@@ -3,12 +3,14 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import UpSampling2D
-from tensorflow.keras.layers import concatenate
+from tensorflow.keras.layers import SpatialDropout2D
+from tensorflow.keras.layers import add
+from tensorflow.keras.initializers import RandomNormal
+from tensorflow.keras.regularizers import l2
 from .unet import convolution_block
 
 
-def NestedUNet_FeatureExtractor(num_filters, out_dims, input_shape=(32, 400, 3)):
+def NestedUNet_FeatureExtractor(num_filters, out_dims, input_shape=(32, 400, 3), classes=1000):
     f0, f1, f2, f3, f4 = num_filters
     img_input = Input(shape=input_shape)
     

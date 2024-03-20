@@ -9,6 +9,10 @@ from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import Reshape
 from tensorflow.keras.layers import AveragePooling2D
 from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import concatenate
+from utils.train_processing import losses_prepare
+from tensorflow.keras.initializers import RandomNormal
+from tensorflow.keras.regularizers import l2
 from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock, PositionalEmbedding, MLPBlock, DropPath
 
 
@@ -281,6 +285,7 @@ def SVTRNet(num_filters=[64, 128, 256],
     n0, n1, n2  = num_blocks
     height_size = input_shape[0] // patch_size[0]
     width_size  = input_shape[1] // patch_size[1]
+    print(height_size, width_size)
                 
     x = ExtractPatches(embed_dim=f0, 
                        patch_size=patch_size, 
@@ -300,15 +305,7 @@ def SVTRNet(num_filters=[64, 128, 256],
         if mixer_mode == 'Conv':
             mixer_layer = ConvolutionMixer(filters=f0, kernel_size=local_kernel, groups=h0, size=[height_size, width_size])
         else:
-            mixer_layer = Attention(embed_dim=f0, 
-                                    num_heads=h0, 
-                                    mixer=mixer_mode, 
-                                    size=[height_size, width_size], 
-                                    local_kernel=local_kernel, 
-                                    qkv_bias=qkv_bias, 
-                                    qk_scale=qk_scale, 
-                                    attn_drop=attn_drop, 
-                                    proj_drop=proj_drop)
+            mixer_layer = Attention(embed_dim=f0, num_heads=h0, mixer=mixer_mode, size=[height_size, width_size], local_kernel=local_kernel, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=proj_drop)
         
         mlp_dim = f0 * mlp_ratio
         x = SVTRBlock(mixer_layer, 
@@ -326,6 +323,7 @@ def SVTRNet(num_filters=[64, 128, 256],
                       mode=submodule_mode, 
                       normalizer=normalizer)(x)
         height_size = height_size // 2
+    print(height_size, width_size)
 
     for i in range(n1):
         mixer_mode = mixer[n0:n0 + n1][i]
@@ -334,15 +332,7 @@ def SVTRNet(num_filters=[64, 128, 256],
         if mixer_mode == 'Conv':
             mixer_layer = ConvolutionMixer(filters=f1, kernel_size=local_kernel, groups=h1, size=[height_size, width_size])
         else:
-            mixer_layer = Attention(embed_dim=f1, 
-                                    num_heads=h1, 
-                                    mixer=mixer_mode, 
-                                    size=[height_size, width_size], 
-                                    local_kernel=local_kernel, 
-                                    qkv_bias=qkv_bias, 
-                                    qk_scale=qk_scale, 
-                                    attn_drop=attn_drop, 
-                                    proj_drop=proj_drop)
+            mixer_layer = Attention(embed_dim=f1, num_heads=h1, mixer=mixer_mode, size=[height_size, width_size], local_kernel=local_kernel, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=proj_drop)
 
         mlp_dim = f1 * mlp_ratio
         x = SVTRBlock(mixer_layer, 
@@ -360,6 +350,7 @@ def SVTRNet(num_filters=[64, 128, 256],
                       mode=submodule_mode, 
                       normalizer=normalizer)(x)
         height_size = height_size // 2
+    print(height_size, width_size)
 
     for i in range(n2):
         mixer_mode = mixer[n0 + n1:][i]
@@ -368,15 +359,7 @@ def SVTRNet(num_filters=[64, 128, 256],
         if mixer_mode == 'Conv':
             mixer_layer = ConvolutionMixer(filters=f2, kernel_size=local_kernel, groups=h2, size=[height_size, width_size])
         else:
-            mixer_layer = Attention(embed_dim=f2, 
-                                    num_heads=h2, 
-                                    mixer=mixer_mode, 
-                                    size=[height_size, width_size], 
-                                    local_kernel=local_kernel, 
-                                    qkv_bias=qkv_bias, 
-                                    qk_scale=qk_scale, 
-                                    attn_drop=attn_drop, 
-                                    proj_drop=proj_drop)
+            mixer_layer = Attention(embed_dim=f2, num_heads=h2, mixer=mixer_mode, size=[height_size, width_size], local_kernel=local_kernel, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=proj_drop)
         
         mlp_dim = f2 * mlp_ratio
         x = SVTRBlock(mixer_layer, 

@@ -9,7 +9,7 @@ from tensorflow.keras.regularizers import l2
 from models.layers import get_activation_from_name, get_normalizer_from_name
 
 
-def VGG_FeatureExtractor(num_filters, input_shape=(32, 200, 3), activation='relu', normalizer='batch-norm', drop_rate=0.35):
+def VGG_FeatureExtractor(num_filters, input_shape=(32, 200, 3), activation='relu', normalizer='batch-norm', classes=1000, drop_rate=0.35):
     f0, f1, f2, f3 = num_filters
     img_input = Input(shape=input_shape)
     
