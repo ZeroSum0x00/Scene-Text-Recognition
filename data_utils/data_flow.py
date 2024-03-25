@@ -204,7 +204,7 @@ class Data_Sequence(Sequence):
             
             label = sample['label']
             out_of_char = f'[^{self.character}]'
-            label = re.sub(out_of_char, '', label.lower())
+            label = re.sub(out_of_char, '', label)
             batch_image.append(image)
             batch_label.append(label)
             
