@@ -25,7 +25,8 @@ class ParseImageName:
             info_dict = {}
             info_dict['filename'] = filename
             info_dict['image'] = None
-            info_dict['label'] = text = ''.join(filename.split('.')[0].split('_')[1:])
+            text = ''.join(filename.split('.')[0].split('_')[1:])
+            info_dict['label'] = text if self.sensitive else text.lower()
             info_dict['lenght'] = len(text)
             info_dict['path'] = self.data_dir
             image_path = os.path.join(self.data_dir, filename)
