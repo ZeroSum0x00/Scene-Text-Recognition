@@ -101,9 +101,9 @@ class ConvolutionHead(tf.keras.layers.Layer):
         return x
 
 
-class SVTRHead(tf.keras.layers.Layer):
+class SimpleSVTRHead(tf.keras.layers.Layer):
     def __init__(self, hidden_dim=-1, num_classes=1000, *args, **kwargs):
-        super(SVTRHead, self).__init__(*args, **kwargs)
+        super(SimpleSVTRHead, self).__init__(*args, **kwargs)
         self.hidden_dim  = hidden_dim
         self.num_classes = num_classes
 
@@ -120,4 +120,121 @@ class SVTRHead(tf.keras.layers.Layer):
 
     def call(self, inputs, training=False):
         x = self.block(inputs, training=training)
+        return x
+
+
+class EncodeSVTRHead(tf.keras.Model):
+    def __init__(self, 
+                 hidden_dim=120, 
+                 local_kernel=[7, 11],
+                 conv_kernel_size=[3, 3],
+                 mixer_mode='Global',
+                 depth=2, 
+                 num_heads=8, 
+                 qkv_bias=True, 
+                 qk_scale=None,
+                 mlp_ratio=2.0,  
+                 activation='swish',
+                 conv_normalizer='batch-norm',
+                 attn_normalizer='layer-norm',
+                 use_prenorm=False,
+                 attn_drop=0.,
+                 proj_drop=0.,
+                 drop_path_rate=0.1,
+                 num_classes=1000, 
+                 *args, **kwargs):
+        super(EncodeSVTRHead, self).__init__(*args, **kwargs)
+        self.hidden_dim       = hidden_dim
+        self.local_kernel     = local_kernel
+        self.conv_kernel_size = conv_kernel_size
+        self.mixer_mode       = mixer_mode
+        self.depth            = depth
+        self.num_heads        = num_heads
+        self.qkv_bias         = qkv_bias
+        self.qk_scale         = qk_scale
+        self.mlp_ratio        = mlp_ratio
+        self.activation       = activation
+        self.conv_normalizer  = conv_normalizer
+        self.attn_normalizer  = attn_normalizer
+        self.use_prenorm      = use_prenorm
+        self.attn_drop        = attn_drop
+        self.proj_drop        = proj_drop
+        self.drop_path_rate   = drop_path_rate
+        self.num_classes      = num_classes
+
+    def build(self, input_shape):
+        c = input_shape[-1]
+        self.conv1 = ConvolutionBlock(filters=c // 8,
+                                      kernel_size=self.conv_kernel_size,
+                                      strides=(1, 1),
+                                      padding='SAME',
+                                      use_bias=False,
+                                      activation=self.activation,
+                                      normalizer=self.conv_normalizer)
+        self.conv2 = ConvolutionBlock(filters=self.hidden_dim,
+                                      kernel_size=(1, 1),
+                                      strides=(1, 1),
+                                      padding='VALID',
+                                      use_bias=False,
+                                      activation=self.activation,
+                                      normalizer=self.conv_normalizer)
+        self.conv3 = ConvolutionBlock(filters=c,
+                                      kernel_size=(1, 1),
+                                      strides=(1, 1),
+                                      padding='VALID',
+                                      use_bias=False,
+                                      activation=self.activation,
+                                      normalizer=self.conv_normalizer)
+        self.conv4 = ConvolutionBlock(filters=c // 8,
+                                      kernel_size=self.conv_kernel_size,
+                                      strides=(1, 1),
+                                      padding='SAME',
+                                      use_bias=False,
+                                      activation=self.activation,
+                                      normalizer=self.conv_normalizer)
+        self.conv5 = ConvolutionBlock(filters=self.num_classes,
+                                      kernel_size=(1, 1),
+                                      strides=(1, 1),
+                                      padding='VALID',
+                                      use_bias=False,
+                                      activation=self.activation,
+                                      normalizer=self.conv_normalizer)
+        
+        if self.mixer_mode == 'Conv':
+            mixer_layer = ConvolutionMixer(filters=self.hidden_dim, kernel_size=self.local_kernel, groups=self.num_heads, size=None)
+        else:
+            mixer_layer = Attention(embed_dim=self.hidden_dim, 
+                                    num_heads=self.num_heads, 
+                                    mixer=self.mixer_mode, 
+                                    size=None, 
+                                    local_kernel=self.local_kernel, 
+                                    qkv_bias=self.qkv_bias, 
+                                    qk_scale=self.qk_scale, 
+                                    attn_drop=self.attn_drop, 
+                                    proj_drop=self.proj_drop)
+
+        mlp_dim = self.hidden_dim * self.mlp_ratio
+        self.block = Sequential([
+            SVTRBlock(mixer_layer,
+                      mlp_dim,
+                      use_prenorm=self.use_prenorm,
+                      activation=self.activation,
+                      normalizer=self.attn_normalizer,
+                      proj_drop=self.proj_drop,
+                      drop_path_prob=self.drop_path_rate) for _ in range(self.depth)
+        ])
+        self.norm_layer = get_normalizer_from_name(self.attn_normalizer)
+
+    def call(self, inputs, training=False):
+        x = self.conv1(inputs, training=training)
+        x = self.conv2(x, training=training)
+        bs, h, w, c = tf.shape(x)
+        x = tf.reshape(x, shape=[bs, h*w, c])
+        x = self.block(x, training=training)
+        x = self.norm_layer(x, training=training)
+        x = tf.reshape(x, shape=[bs, h, w, c])
+        x = self.conv3(x, training=training)
+        x = concatenate([x, inputs])
+        x = self.conv4(x, training=training)
+        x = self.conv5(x, training=training)
         return x
