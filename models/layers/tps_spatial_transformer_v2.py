@@ -9,7 +9,7 @@ from . import get_activation_from_name, get_normalizer_from_name
 from .grid_sample import grid_sample_with_mask
 
 
-class LocalizationNetwork(tf.keras.Model):
+class LocalizationNetwork(tf.keras.layers.Layer):
 
     def __init__(self, num_control_points, control_activation=False, activation='relu', normalizer='batch-norm', *args, **kwargs):
         super(LocalizationNetwork, self).__init__(*args, **kwargs)
@@ -68,7 +68,7 @@ class LocalizationNetwork(tf.keras.Model):
         initial_bias = tf.constant_initializer(ctrl_points.reshape(-1))
         initial_weights = tf.initializers.zeros()
         self.localization_fc2 = Dense(units=self.num_control_points * 2, kernel_initializer=initial_weights, bias_initializer=initial_bias)
-
+        
     def call(self, inputs, training=False):
         bs = tf.shape(inputs)[0]
         x = self.conv(inputs, training=training)
@@ -93,7 +93,6 @@ class TPS_SpatialTransformerNetworkV2(tf.keras.layers.Layer):
         bs = input_shape[0]
         image_size = input_shape[1:-1]
         target_control_points = self.build_output_control_points()
-        target_control_points = tf.convert_to_tensor(target_control_points, dtype=tf.float32)
 
         N = self.num_control_points
 
@@ -133,7 +132,7 @@ class TPS_SpatialTransformerNetworkV2(tf.keras.layers.Layer):
             initial_value=padding_matrix, trainable=True, name=f'TPS_SpatialTransformerNetworkV2/padding_matrix'
         )
         
-        self.localization_network = LocalizationNetwork(self.num_control_points, control_activation=True)
+        self.localization_network = LocalizationNetwork(self.num_control_points)
 
     def build_output_control_points(self):
         margin_x, margin_y = self.margins
