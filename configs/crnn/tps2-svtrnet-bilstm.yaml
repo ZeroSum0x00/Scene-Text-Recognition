@@ -2,7 +2,7 @@ Dataset:
     data_dir: '/home/vbpo-101386/Desktop/TuNIT/Datasets/Text Recognition/IIIT5K'
     annotation_dir: null
     data_info:
-        data_type: 'lmdb'
+        data_type: 'filename'
         character: &char '0123456789abcdefghijklmnopqrstuvwxyz'
         max_string_length: &max_length 50
         color_space: 'rgb'
@@ -84,8 +84,15 @@ Model:
         drop_path_rate: 0.1
         final_drop: 0.2
     SequenceLayer:
-        name: SimpleSVTRHead
+        name: CascadeBidirectionalLSTM
+        units: 256
+        use_dense: False
+        num_layer: 2
     TransformLayer:
+        name: TPS_SpatialTransformerNetworkV2
+        grid_size: [32, 64]
+        num_control_points: 10
+        margins: [0.05, 0.05]
         
 Train:
     mode: 'graph'

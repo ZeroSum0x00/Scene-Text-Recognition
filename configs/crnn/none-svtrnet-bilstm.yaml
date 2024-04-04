@@ -3,7 +3,7 @@ Dataset:
     annotation_dir: null
     data_info:
         data_type: 'filename'
-        character: &char './configs/data/china.names'
+        character: &char '0123456789abcdefghijklmnopqrstuvwxyz'
         max_string_length: &max_length 50
         color_space: 'rgb'
         sensitive: False
@@ -13,7 +13,7 @@ Dataset:
         norm_type: 'sub_divide'
         norm_mean: null
         norm_std: null
-        norm_resize_with_pad: True
+        norm_resize_with_pad: False
         norm_padding_mode: 'constant'
         norm_padding_color: [255, 255, 255]
     data_augmentation:
@@ -62,12 +62,13 @@ Model:
         num_heads: [2, 4, 8]
         patch_size: [4, 4]
         mlp_ratio: 4
-        mixer: ['Local'] * 6 + ['Global'] * 6
+        mixer: ['Local',  'Local',  'Local',  'Local',  'Local',  'Local', 
+                'Global', 'Global', 'Global', 'Global', 'Global', 'Global'] 
         local_kernel: [7, 11]
         qkv_bias: True
         qk_scale: null
         submodule_mode: True
-        max_length: 25
+        max_length: *max_length
         include_top: True
         weights: 'imagenet'
         input_tensor: null 
@@ -77,10 +78,11 @@ Model:
         activation: 'gelu'
         normalizer: 'layer-norm'
         final_activation: "hard-swish"
-        attn_drop: 0. 
-        proj_drop: 0.
+        out_channels: 192
+        attn_drop: 0.2
+        proj_drop: 0.2
         drop_path_rate: 0.1
-        final_drop: 0.1
+        final_drop: 0.2
     SequenceLayer:
         name: CascadeBidirectionalLSTM
         units: 256
@@ -95,7 +97,7 @@ Train:
     batch_size: 64
     epoch:
         start: 0
-        end: 1000
+        end: &end_epoch 1000
         
 Losses:
     - CTCLoss:
@@ -103,9 +105,9 @@ Losses:
 
 Optimizer:
     name: Adam
+    learning_rate: 0.0001
     beta_1: 0.9
     beta_2: 0.999
-    learning_rate: 0.0001
     global_clipnorm: 5.0
 
 Metrics:

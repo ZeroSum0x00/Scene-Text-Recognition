@@ -86,12 +86,14 @@ Model:
     SequenceLayer:
         name: SimpleSVTRHead
     TransformLayer:
+        name: TPS_SpatialTransformerNetwork
+        F: 10
         
 Train:
     mode: 'graph'
     save_weight_path: &save_weight './saved_weights/'
     save_weight_type: &save_type 'tf'
-    batch_size: 64
+    batch_size: 32
     epoch:
         start: 0
         end: &end_epoch 1000
