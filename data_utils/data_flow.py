@@ -57,7 +57,7 @@ def get_train_test_data(data_dirs,
                                     character               = character,
                                     character_converter     = character_converter,
                                     color_space             = color_space,
-                                    augmentor               = augmentor['train'],
+                                    augmentor               = augmentor,
                                     normalizer              = normalizer,
                                     mean_norm               = mean_norm,
                                     std_norm                = std_norm,
@@ -83,7 +83,7 @@ def get_train_test_data(data_dirs,
                                         character               = character,
                                         character_converter     = character_converter,
                                         color_space             = color_space,
-                                        augmentor               = augmentor['valid'],
+                                        augmentor               = augmentor,
                                         normalizer              = normalizer,
                                         mean_norm               = mean_norm,
                                         std_norm                = std_norm,
@@ -111,7 +111,7 @@ def get_train_test_data(data_dirs,
                                         character               = character,
                                         character_converter     = character_converter,
                                         color_space             = color_space,
-                                        augmentor               = augmentor['test'],
+                                        augmentor               = augmentor,
                                         normalizer              = normalizer,
                                         mean_norm               = mean_norm,
                                         std_norm                = std_norm,
@@ -165,10 +165,10 @@ class Data_Sequence(Sequence):
                                      padding_color=norm_padding_color)
         self.label_converter = character_converter
 
-        if augmentor and isinstance(augmentor, list):
-            self.augmentor = Augmentor(augment_objects=build_augmenter(augmentor))
+        if augmentor[phase] and isinstance(augmentor[phase], (tuple, list)):
+            self.augmentor = Augmentor(augment_objects=build_augmenter(augmentor[phase]))
         else:
-            self.augmentor = augmentor
+            self.augmentor = augmentor[phase]
                      
     def __len__(self):
         return int(np.ceil(self.N / float(self.batch_size)))
