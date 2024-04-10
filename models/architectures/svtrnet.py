@@ -9,11 +9,9 @@ from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import Reshape
 from tensorflow.keras.layers import AveragePooling2D
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import concatenate
-from utils.train_processing import losses_prepare
-from tensorflow.keras.initializers import RandomNormal
-from tensorflow.keras.regularizers import l2
+
 from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock, PositionalEmbedding, MLPBlock, DropPath
+
 
 
 class ConvolutionMixer(tf.keras.layers.Layer):

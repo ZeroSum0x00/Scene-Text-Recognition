@@ -1,24 +1,19 @@
 from __future__ import print_function
 from __future__ import absolute_import
-import numpy as np
-import warnings
-import tensorflow as tf
+
 import math
+import numpy as np
+import tensorflow as tf
 from tensorflow.keras import Sequential
-from tensorflow.keras import backend as K
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import ZeroPadding2D
-from tensorflow.keras.layers import AveragePooling2D
-from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import Reshape
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import Embedding
 from tensorflow.keras.layers import GlobalAveragePooling2D
-from tensorflow.keras.layers import GlobalMaxPooling2D
+
 from models.layers import get_activation_from_name, get_normalizer_from_name, ConvolutionBlock
+from utils.train_processing import losses_prepare
+
 
 
 def get_sinusoid_encoding_table(embed_dim, n_position):
@@ -32,7 +27,7 @@ def get_sinusoid_encoding_table(embed_dim, n_position):
     return sinusoid_table
 
 
-class Adaptive2DPositionalEncoding(tf.keras.Model):
+class Adaptive2DPositionalEncoding(tf.keras.layers.Layer):
     def __init__(self,
                  embed_dim,
                  position_size,
@@ -94,7 +89,7 @@ class Adaptive2DPositionalEncoding(tf.keras.Model):
         return x
 
 
-class MultiHeadAttention(tf.keras.Model):
+class MultiHeadAttention(tf.keras.layers.Layer):
     def __init__(self,
                  embed_dim,
                  num_heads=8,
@@ -165,7 +160,7 @@ class MultiHeadAttention(tf.keras.Model):
         return attn_out
 
 
-class LocalityAwareFeedforward(tf.keras.Model):
+class LocalityAwareFeedforward(tf.keras.layers.Layer):
     def __init__(self,
                  filters,
                  activation='relu', 
@@ -210,7 +205,7 @@ class LocalityAwareFeedforward(tf.keras.Model):
         return x
 
 
-class SATRNEncodeLayer(tf.keras.Model):
+class SATRNEncodeLayer(tf.keras.layers.Layer):
     def __init__(self,
                  embed_dim,
                  forward_dim,
@@ -267,7 +262,7 @@ class SATRNEncodeLayer(tf.keras.Model):
         return x
 
 
-class SATRNEncoder(tf.keras.Model):
+class SATRNEncoder(tf.keras.layers.Layer):
     def __init__(self,
                  embed_dim,
                  forward_dim,
@@ -346,7 +341,7 @@ class SATRNEncoder(tf.keras.Model):
         return feat
 
 
-class PositionalEncoding(tf.keras.Model):
+class PositionalEncoding(tf.keras.layers.Layer):
     def __init__(self,
                  embed_dim,
                  n_position,
@@ -377,7 +372,7 @@ class PositionalEncoding(tf.keras.Model):
         return x
 
 
-class PositionwiseFeedForward(tf.keras.Model):
+class PositionwiseFeedForward(tf.keras.layers.Layer):
     def __init__(self,
                  embed_dim,
                  activation='gelu',
@@ -402,7 +397,7 @@ class PositionwiseFeedForward(tf.keras.Model):
         return x
 
 
-class SATRNDecodeLayer(tf.keras.Model):
+class SATRNDecodeLayer(tf.keras.layers.Layer):
     def __init__(self,
                  embed_dim,
                  forward_dim,
@@ -472,7 +467,7 @@ class SATRNDecodeLayer(tf.keras.Model):
         return mlp_out
 
 
-class SATRNDecoder(tf.keras.Model):
+class SATRNDecoder(tf.keras.layers.Layer):
     def __init__(self,
                  embed_dim,
                  forward_dim,
@@ -676,3 +671,11 @@ class SATRN(tf.keras.Model):
         x = self.encoder(x, lenghts, training=training)
         x = self.decoder(x, labels, lenghts, training=training)
         return x
+
+    def calc_loss(self, y_true, y_pred, lenghts, loss_object):
+        losses = losses_prepare(loss_object)
+        loss_value = 0
+        if losses:
+            for loss in losses:
+                loss_value += loss(y_true, y_pred, lenghts)
+        return loss_value

@@ -8,9 +8,10 @@ from tensorflow.keras.layers import UpSampling2D
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import concatenate
-from utils.train_processing import losses_prepare
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
+
+from utils.train_processing import losses_prepare
 from models.layers import get_activation_from_name, get_normalizer_from_name
 
 
@@ -619,10 +620,11 @@ class ABINet(tf.keras.Model):
         preds_length   = tf.cast(tf.shape(y_pred)[1], dtype="int32")
         preds_length   = preds_length * tf.ones(shape=(batch_length), dtype="int32")
         return preds, preds_length, preds_max_prob
-        
+
     def calc_loss(self, y_true, y_pred, lenghts, loss_object):
         losses = losses_prepare(loss_object)
         loss_value = 0
         if losses:
-            loss_value += losses(y_true, y_pred, lenghts)        
+            for loss in losses:
+                loss_value += loss(y_true, y_pred, lenghts)
         return loss_value

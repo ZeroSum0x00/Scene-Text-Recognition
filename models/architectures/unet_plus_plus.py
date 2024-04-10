@@ -3,10 +3,9 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import SpatialDropout2D
-from tensorflow.keras.layers import add
-from tensorflow.keras.initializers import RandomNormal
-from tensorflow.keras.regularizers import l2
+from tensorflow.keras.layers import UpSampling2D
+from tensorflow.keras.layers import concatenate
+
 from .unet import convolution_block
 
 

@@ -1,13 +1,12 @@
 import tensorflow as tf
-from tensorflow.keras import Sequential
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import add
 from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.regularizers import l2
+
 from models.layers import get_activation_from_name, get_normalizer_from_name
 
 

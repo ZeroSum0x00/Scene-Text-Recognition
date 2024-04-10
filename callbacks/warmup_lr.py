@@ -1,9 +1,11 @@
 import os
 import numpy as np
 import tensorflow as tf
+
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
+
 
 class WarmUpLearningRate(tf.keras.callbacks.Callback):
     def __init__(self, 

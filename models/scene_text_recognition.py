@@ -1,8 +1,6 @@
-import copy
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-from tensorflow.keras.initializers import RandomNormal
-from tensorflow.keras.regularizers import l2
+
 from utils.logger import logger
 
 
@@ -18,8 +16,6 @@ class STR(tf.keras.Model):
         self.optimizer = optimizer
         self.loss_object = loss
         self.list_metrics = metrics
-        # for layer in zip(self.architecture.layers):
-        #     print(layer)
 
     @property
     def metrics(self):
@@ -35,17 +31,18 @@ class STR(tf.keras.Model):
         images, labels, lenghts = data
 
         with tf.GradientTape() as tape:
+            loss_value = 0
             for losses in self.loss_object:
                 if losses['loss'].invariant_name.lower() == "attention_entropy":
                     y_pred, labels = self.architecture([images, labels], training=True)
                 else:
                     y_pred = self.architecture(images, training=True)
 
-                loss_value   = self.architecture.calc_loss(y_true=labels, 
-                                                           y_pred=y_pred, 
-                                                           lenghts=lenghts, 
-                                                           loss_object=self.loss_object)
-                
+                loss_value += self.architecture.calc_loss(y_true=labels, 
+                                                          y_pred=y_pred, 
+                                                          lenghts=lenghts,
+                                                          loss_object=losses)
+            
         gradients = tape.gradient(loss_value, self.architecture.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.architecture.trainable_variables))
         self.total_loss_tracker.update_state(loss_value)
@@ -65,16 +62,18 @@ class STR(tf.keras.Model):
     
     def test_step(self, data):
         images, labels, lenghts = data
+        loss_value = 0
         for losses in self.loss_object:
             if losses['loss'].invariant_name.lower() == "attention_entropy":
                 y_pred, labels = self.architecture([images, labels], training=False)
             else:
                 y_pred = self.architecture(images, training=False)
                 
-            loss_value   = self.architecture.calc_loss(y_true=labels, 
-                                                       y_pred=y_pred, 
-                                                       lenghts=lenghts, 
-                                                       loss_object=self.loss_object)
+            loss_value += self.architecture.calc_loss(y_true=labels, 
+                                                      y_pred=y_pred, 
+                                                      lenghts=lenghts, 
+                                                      loss_object=losses)
+        
         self.total_loss_tracker.update_state(loss_value)
         
         if self.list_metrics:

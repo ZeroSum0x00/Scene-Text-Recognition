@@ -1,9 +1,8 @@
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Reshape
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Softmax
 from tensorflow.keras.layers import AveragePooling2D
+
 from models.layers import ConvolutionHead
 from utils.train_processing import losses_prepare
 
@@ -52,10 +51,10 @@ class CRNN(tf.keras.Model):
         preds_length   = tf.cast(tf.shape(y_pred)[1], dtype="int32")
         preds_length   = preds_length * tf.ones(shape=(batch_length), dtype="int32")
         return preds, preds_length, preds_max_prob
-    
+
     def calc_loss(self, y_true, y_pred, lenghts, loss_object):
-        losses = losses_prepare(loss_object)
+        loss = losses_prepare(loss_object)
         loss_value = 0
-        if losses:
-            loss_value += losses(y_true, y_pred, lenghts)
+        if loss:
+            loss_value += loss(y_true, y_pred, lenghts)
         return loss_value

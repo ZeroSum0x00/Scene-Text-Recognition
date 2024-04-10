@@ -1,5 +1,4 @@
 import tensorflow as tf
-from tensorflow.keras.metrics import Metric
 from data_utils.data_processing import get_labels
 
 

@@ -26,7 +26,7 @@ def BasicBlock(input_tensor, filters, kernel_size=3, downsaple=False, activation
         shortcut = get_normalizer_from_name(normalizer)(shortcut)
 
     x = add([x, shortcut])
-    x = Activation('relu')(x)
+    x = get_activation_from_name('relu')(x)
     return x
 
 

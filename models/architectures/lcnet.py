@@ -3,7 +3,6 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import SpatialDropout2D
 from tensorflow.keras.layers import GlobalAveragePooling2D
 from models.layers import ConvolutionBlock, RepVGGBlock
 

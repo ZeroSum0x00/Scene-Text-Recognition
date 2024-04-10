@@ -7,11 +7,9 @@ from utils.files import verify_folder
 
 
 def losses_prepare(loss_object):
-    losses  = None
-    for object in loss_object:
-        losses = object['loss']
-        losses.coefficient = object['coeff']
-    return losses
+    loss = loss_object['loss']
+    loss.coefficient = loss_object['coeff']
+    return loss
 
 
 def train_prepare(train_mode):

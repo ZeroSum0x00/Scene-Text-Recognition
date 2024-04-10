@@ -1,9 +1,10 @@
 import os
 import numpy as np
 import tensorflow as tf
+
 from datetime import datetime
 from utils.time import datetime2string
-from utils.logger import logger
+
 
 class TrainSummary(tf.keras.callbacks.Callback):
     def __init__(self,
