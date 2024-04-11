@@ -1,5 +1,6 @@
 import os
 import shutil
+import argparse
 import tensorflow as tf
 from models import build_models
 from losses import build_losses
@@ -70,6 +71,14 @@ def train(file_config=None):
             
         model.save_weights(TRAINING_TIME_PATH + 'weights/last_weights', save_format=train_config['save_weight_type'])
         
-        
+
+def parse_opt():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="./configs/crnn/tps2-svtrnet.yaml", help="config file path")
+    return parser.parse_args()
+
+    
 if __name__ == '__main__':
-    train('./configs/crnn/none-vgg-bilstm.yaml')
+    cfg = parse_opt()
+    file_config = cfg.config
+    train(file_config)
